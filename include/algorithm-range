@@ -1,0 +1,1283 @@
+// -*- C++ -*-
+
+#ifndef _LIBCPP_ALGORITHM_RANGE
+#define _LIBCPP_ALGORITHM_RANGE
+
+#include <__config>
+#include <initializer_list>
+#include <type_traits>
+#include <cstring>
+#include <utility>
+#include <memory>
+#include <range>
+
+#include <cstddef>
+
+#include <__undef_min_max>
+
+#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#pragma GCC system_header
+#endif
+
+_LIBCPP_BEGIN_NAMESPACE_STD
+
+template <class _T1, class _T2 = _T1>
+struct __equal_to
+{
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x == __y;}
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T2& __y) const {return __x == __y;}
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T2& __x, const _T1& __y) const {return __x == __y;}
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T2& __x, const _T2& __y) const {return __x == __y;}
+};
+
+template <class _T1>
+struct __equal_to<_T1, _T1>
+{
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x == __y;}
+};
+
+template <class _T1>
+struct __equal_to<const _T1, _T1>
+{
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x == __y;}
+};
+
+template <class _T1>
+struct __equal_to<_T1, const _T1>
+{
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x == __y;}
+};
+
+template <class _T1, class _T2 = _T1>
+struct __less
+{
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x < __y;}
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T2& __y) const {return __x < __y;}
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T2& __x, const _T1& __y) const {return __x < __y;}
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T2& __x, const _T2& __y) const {return __x < __y;}
+};
+
+template <class _T1>
+struct __less<_T1, _T1>
+{
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x < __y;}
+};
+
+template <class _T1>
+struct __less<const _T1, _T1>
+{
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x < __y;}
+};
+
+template <class _T1>
+struct __less<_T1, const _T1>
+{
+    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x < __y;}
+};
+
+template <class _Predicate>
+class __negate
+{
+private:
+    _Predicate __p_;
+public:
+    _LIBCPP_INLINE_VISIBILITY __negate() {}
+
+    _LIBCPP_INLINE_VISIBILITY
+    explicit __negate(_Predicate __p) : __p_(__p) {}
+
+    template <class _T1>
+    _LIBCPP_INLINE_VISIBILITY
+    bool operator()(const _T1& __x) {return !__p_(__x);}
+
+    template <class _T1, class _T2>
+    _LIBCPP_INLINE_VISIBILITY
+    bool operator()(const _T1& __x, const _T2& __y) {return !__p_(__x, __y);}
+};
+
+// Precondition:  __x != 0
+inline _LIBCPP_INLINE_VISIBILITY
+unsigned
+__ctz(unsigned __x)
+{
+    return static_cast<unsigned>(__builtin_ctz(__x));
+}
+
+inline _LIBCPP_INLINE_VISIBILITY
+unsigned long
+__ctz(unsigned long __x)
+{
+    return static_cast<unsigned long>(__builtin_ctzl(__x));
+}
+
+inline _LIBCPP_INLINE_VISIBILITY
+unsigned long long
+__ctz(unsigned long long __x)
+{
+    return static_cast<unsigned long long>(__builtin_ctzll(__x));
+}
+
+// Precondition:  __x != 0
+inline _LIBCPP_INLINE_VISIBILITY
+unsigned
+__clz(unsigned __x)
+{
+    return static_cast<unsigned>(__builtin_clz(__x));
+}
+
+inline _LIBCPP_INLINE_VISIBILITY
+unsigned long
+__clz(unsigned long __x)
+{
+    return static_cast<unsigned long>(__builtin_clzl (__x));
+}
+
+inline _LIBCPP_INLINE_VISIBILITY
+unsigned long long
+__clz(unsigned long long __x)
+{
+    return static_cast<unsigned long long>(__builtin_clzll(__x));
+}
+
+inline _LIBCPP_INLINE_VISIBILITY int __pop_count(unsigned           __x) {return __builtin_popcount  (__x);}
+inline _LIBCPP_INLINE_VISIBILITY int __pop_count(unsigned      long __x) {return __builtin_popcountl (__x);}
+inline _LIBCPP_INLINE_VISIBILITY int __pop_count(unsigned long long __x) {return __builtin_popcountll(__x);}
+
+template <class _InputRange, class _Predicate>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+all_of(_InputRange __r, _Predicate __pred)
+{
+    for (; !__r.empty(); __r.pop_front())
+        if (!__pred(__r.front()))
+            return false;
+    return true;
+}
+
+template <class _InputRange, class _Predicate>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+any_of(_InputRange __r, _Predicate __pred)
+{
+    for (; !__r.empty(); __r.pop_front())
+        if (__pred(__r.front()))
+            return true;
+    return false;
+}
+
+template <class _InputRange, class _Predicate>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+none_of(_InputRange __r, _Predicate __pred)
+{
+    for (; !__r.empty(); __r.pop_front())
+        if (__pred(__r.front()))
+            return false;
+    return true;
+}
+
+template <class _InputRange, class _Function>
+inline _LIBCPP_INLINE_VISIBILITY
+_Function
+for_each(_InputRange __r, _Function __f)
+{
+    for (; !__r.empty(); __r.pop_front())
+        __f(__r.front());
+    return _VSTD::move(__f);
+}
+
+template <class _InputRange, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+_InputRange
+find(_InputRange __r, const _Tp& __value_)
+{
+    for (; !__r.empty(); __r.pop_front())
+        if (__r.front() == __value_)
+            break;
+    return __r;
+}
+
+template <class _InputRange, class _Predicate>
+inline _LIBCPP_INLINE_VISIBILITY
+_InputRange
+find_if(_InputRange __r, _Predicate __pred)
+{
+    for (; !__r.empty(); __r.pop_front)
+        if (__pred(__r.front()))
+            break;
+    return __r;
+}
+
+template<class _InputRange, class _Predicate>
+inline _LIBCPP_INLINE_VISIBILITY
+_InputRange
+find_if_not(_InputRange __r, _Predicate __pred)
+{
+    for (; !__r.empty(); __r.pop_front())
+        if (!__pred(__r.front()))
+            break;
+    return __r;
+}
+
+template <class _BinaryPredicate, class _ForwardRange1, class _ForwardRange2>
+_ForwardRange1
+__find_end(_ForwardRange1 __r1,
+           _ForwardRange2 __r2, _BinaryPredicate __pred,
+           forward_range_tag, forward_range_tag)
+{
+    _ForwardRange1 __r = __r1.after(__r1);
+    if (__r2.empty())
+	return __r;
+    while (true)
+    {
+        while (true)
+        {
+            if (__r1.empty())         // if source exhausted return last correct answer
+                return __r;                  //    (or __last1 if never found)
+            if (__pred(__r1.front(), __r2.front))
+                break;
+            __r1.pop_front();
+        }
+        // *__first1 matches *__first2, now match elements after here
+        _ForwardRange1 __m1 = __r1;
+        _ForwardRange2 __m2 = __r2;
+        while (true)
+        {
+	    __m2.pop_front();
+            if (__m2.empty())
+            {                         // Pattern exhaused, record answer and search for another one
+                __r = __r1.before(__m1);
+                __r1.pop_front();
+                break;
+            }
+	    __m1.pop_front();
+            if (__m1.epmty())     // Source exhausted, return last answer
+                return __r;
+            if (!__pred(__m1.front(), __m2.front()))  // mismatch, restart with a new __first
+            {
+                __r1.pop_front();
+                break;
+            }  // else there is a match, check next elements
+        }
+    }
+}
+
+template <class _BinaryPredicate, class _BidirectionalRange1, class _BidirectionalRange2>
+_BidirectionalRange1
+__find_end(_BidirectionalRange1 __r1,
+           _BidirectionalRange2 __r2, _BinaryPredicate __pred,
+           bidirectional_range_tag, bidirectional_range_tag)
+{
+    // modeled after search algorithm (in reverse)
+    if (__r2.epmty())
+        return after(__r1, __r1);  // Everything matches an empty sequence
+    _BidirectionalRange1 __l1 = __r1;
+    _BidirectionalRange2 __l2 = __r2;
+    __l2.pop_back();
+    while (true)
+    {
+        // Find last element in sequence 1 that matchs *(__last2-1), with a mininum of loop checks
+        while (true)
+        {
+            if (__l1.empty())  // return __last1 if no element matches *__first2
+                return __r1.after(__r1);
+	    __l1.pop_back();
+            if (__pred(__l1.back(), __l2.back()))
+                break;
+        }
+        // *__l1 matches *__l2, now match elements before here
+        _BidirectionalRange1 __m1 = __l1;
+        _BidirectionalRange2 __m2 = __l2;
+        while (true)
+        {
+            if (__m2.empty())  // If pattern exhausted, __m1 is the answer (works for 1 element pattern)
+                return __l1.after(__m1);
+            if (__m1.empty())  // Otherwise if source exhaused, pattern not found
+                return __r1.after(__r1);
+	    __m1.pop_back(); __m2.pop_back();
+            if (!__pred(__m1.back(), __m2.back()))  // if there is a mismatch, restart with a new __l1
+            {
+                break;
+            }  // else there is a match, check next elements
+        }
+    }
+}
+
+template <class _BinaryPredicate, class _RandomAccessRange1, class _RandomAccessRange2>
+_RandomAccessRange1
+__find_end(_RandomAccessRange1 __r1,
+           _RandomAccessRange2 __r2, _BinaryPredicate __pred,
+           random_access_range_tag, random_access_range_tag)
+{
+    // Take advantage of knowing source and pattern lengths.  Stop short when source is smaller than pattern
+    typename range_traits<_RandomAccessRange2>::length_type __len2 = __r2.length();
+    if (__len2 == 0)
+        return __r1.after(__r1);
+    typename range_traits<_RandomAccessRange1>::length_type __len1 = __r1.length();
+    if (__len1 < __len2)
+        return __r1.after(__r1);
+    _RandomAccessRange1 __s = __r1 + (__len2 - 1);  // End of pattern match can't go before here
+    while (true)
+    {
+        while (true)
+        {
+            if (__s.empty())
+                return __r1.after(__r1);
+	    __s.pop_back();
+            if (__pred(__s.back(), __r2.back()))
+                break;
+        }
+        _RandomAccessRange1 __m1 = __r1.before_including(__s);
+        _RandomAccessRange2 __m2 = __r2;
+        while (true)
+        {
+            if (__m2.empty())
+                return __m1;
+                                 // no need to check range on __m1 because __s guarantees we have enough source
+	    __m1.pop_back(); __m2.pop_back();
+            if (!__pred(__m1.back(), __m2.back()))
+            {
+                break;
+            }
+        }
+    }
+}
+
+template <class _ForwardRange1, class _ForwardRange2, class _BinaryPredicate>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange1
+find_end(_ForwardRange1 __r1,
+         _ForwardRange2 __r2, _BinaryPredicate __pred)
+{
+    return _VSTD::__find_end<typename add_lvalue_reference<_BinaryPredicate>::type>
+                         (__r1, __r2, __pred,
+                          typename range_traits<_ForwardRange1>::range_category(),
+                          typename range_traits<_ForwardRange2>::range_category());
+}
+
+template <class _ForwardRange1, class _ForwardRange2>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange1
+find_end(_ForwardRange1 __r1,
+         _ForwardRange2 __r2)
+{
+    typedef typename range_traits<_ForwardRange1>::value_type __v1;
+    typedef typename range_traits<_ForwardRange2>::value_type __v2;
+    return _VSTD::find_end(__r1, __r2, __equal_to<__v1, __v2>());
+}
+
+template <class _ForwardRange1, class _ForwardRange2, class _BinaryPredicate>
+_ForwardRange1
+find_first_of(_ForwardRange1 __r1,
+              _ForwardRange2 __r2, _BinaryPredicate __pred)
+{
+    for (; !__r1.empty(); __r1.pop_front())
+        for (_ForwardRange2 __j = __r2; !__j.empty(); __j.pop_front())
+            if (__pred(__r1.front(), __j.front()))
+                return __r1;
+    return __r1;
+}
+
+template <class _ForwardRange1, class _ForwardRange2>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange1
+find_first_of(_ForwardRange1 __r1,
+              _ForwardRange2 __r2)
+{
+    typedef typename range_traits<_ForwardRange1>::value_type __v1;
+    typedef typename range_traits<_ForwardRange2>::value_type __v2;
+    return _VSTD::find_first_of(__r1, __r2, __equal_to<__v1, __v2>());
+}
+
+template <class _ForwardRange, class _BinaryPredicate>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+adjacent_find(_ForwardRange __r, _BinaryPredicate __pred)
+{
+    if (!__r.empty())
+    {
+        _ForwardRange __i = __r;
+        while (!__i.empty())
+        {
+	    __i.pop_front();
+            if (__pred(__r.front(), __i.front()))
+                return __r;
+            __r = __i;
+        }
+    }
+    return __r;
+}
+
+template <class _ForwardRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+adjacent_find(_ForwardRange __r)
+{
+    typedef typename range_traits<_ForwardRange>::value_type __v;
+    return _VSTD::adjacent_find(__r, __equal_to<__v>());
+}
+
+template <class _InputRange, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+typename range_traits<_InputRange>::length_type
+count(_InputRange __r, const _Tp& __value_)
+{
+    typename range_traits<_InputRange>::length_type __c(0);
+    for (; !__r.empty(); __r.pop_front())
+        if (__r.front() == __value_)
+            ++__c;
+    return __c;
+}
+
+template <class _InputRange, class _Predicate>
+inline _LIBCPP_INLINE_VISIBILITY
+typename range_traits<_InputRange>::length_type
+count_if(_InputRange __r, _Predicate __pred)
+{
+    typename range_traits<_InputRange>::length_type __c(0);
+    for (; !__r.empty(); __r.pop_front())
+        if (__pred(__r.front()))
+            ++__c;
+    return __c;
+}
+
+template <class _InputRange1, class _InputRange2, class _BinaryPredicate>
+inline _LIBCPP_INLINE_VISIBILITY
+pair<_InputRange1, _InputRange2>
+mismatch(_InputRange1 __r1,
+         _InputRange2 __r2, _BinaryPredicate __pred)
+{
+    for (; !__r1.empty(); __r1.pop_front(), __r2.pop_front())
+        if (!__pred(__r1.front(), __r2.front()))
+            break;
+    return pair<_InputRange1, _InputRange2>(__r1, __r2);
+}
+
+template <class _InputRange1, class _InputRange2>
+inline _LIBCPP_INLINE_VISIBILITY
+pair<_InputRange1, _InputRange2>
+mismatch(_InputRange1 __r1, _InputRange2 __r2)
+{
+    typedef typename range_traits<_InputRange1>::value_type __v1;
+    typedef typename range_traits<_InputRange2>::value_type __v2;
+    return _VSTD::mismatch(__r1, __r2, __equal_to<__v1, __v2>());
+}
+
+template <class _InputRange1, class _InputRange2, class _BinaryPredicate>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+equal(_InputRange1 __r1, _InputRange2 __r2, _BinaryPredicate __pred)
+{
+    for (; !__r1.empty(); __r1.pop_front(), __r2.pop_front())
+        if (!__pred(__r1.front(), __r2.front()))
+            return false;
+    return true;
+}
+
+template <class _InputRange1, class _InputRange2>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+equal(_InputRange1 __r1, _InputRange2 __r2)
+{
+    typedef typename range_traits<_InputRange1>::value_type __v1;
+    typedef typename range_traits<_InputRange2>::value_type __v2;
+    return _VSTD::equal(__r1, __r2, __equal_to<__v1, __v2>());
+}
+
+template<class _ForwardRange1, class _ForwardRange2, class _BinaryPredicate>
+bool
+is_permutation(_ForwardRange1 __r1,
+               _ForwardRange2 __r2, _BinaryPredicate __pred)
+{
+    // shorten sequences as much as possible by lopping of any equal parts
+    for (; !__r1.empty(); __r1.pop_front(), __r2.pop_front())
+        if (!__pred(__r1.front(), __r2.front()))
+            goto __not_done;
+    return true;
+__not_done:
+    // __first1 != __last1 && *__first1 != *__first2
+    typedef typename range_traits<_ForwardRange1>::length_type _D1;
+    // distance should be length for ranges
+    _D1 __l1 = _VSTD::distance(__r1);
+    // in the iterator version of the algorithm it was 1 below, instead of 0
+    if (__l1 == _D1(0))
+        return false;
+    // Could just have a take function below.
+    __r2 = __r2.before(_VSTD::next(__r2, __l1));
+    // For each element in [f1, l1) see if there are the same number of
+    //    equal elements in [f2, l2)
+    for (_ForwardRange1 __i = __r1; !__i.empty(); __i.pop_front())
+    {
+        // Have we already counted the number of *__i in [f1, l1)?
+        for (_ForwardRange1 __j = __r1.before(__i); !__j.epmty(); __j.pop_front())
+            if (__pred(__j.front(), __i.front()))
+                goto __next_iter;
+        {
+            // Count number of *__i in [f2, l2)
+            _D1 __c2 = 0;
+            for (_ForwardRange2 __j = __r2; !__j.empty(); __j.pop_front())
+                if (__pred(__i.front(), __j.front()))
+                    ++__c2;
+            if (__c2 == 0)
+                return false;
+            // Count number of *__i in [__i, l1) (we can start with 1)
+            _D1 __c1 = 1;
+            for (_ForwardRange1 __j = _VSTD::next(__i); !__j.empty(); __j.pop_front())
+                if (__pred(__i.front(), __j.front()))
+                    ++__c1;
+            if (__c1 != __c2)
+                return false;
+        }
+__next_iter:;
+    }
+    return true;
+}
+
+template<class _ForwardRange1, class _ForwardRange2>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+is_permutation(_ForwardRange1 __r1,
+               _ForwardRange2 __r2)
+{
+    typedef typename range_traits<_ForwardRange1>::value_type __v1;
+    typedef typename range_traits<_ForwardRange2>::value_type __v2;
+    return _VSTD::is_permutation(__r1, __r2, __equal_to<__v1, __v2>());
+}
+
+template <class _BinaryPredicate, class _ForwardRange1, class _ForwardRange2>
+_ForwardRange1
+__search(_ForwardRange1 __r1,
+         _ForwardRange2 __r2, _BinaryPredicate __pred,
+         forward_range_tag, forward_range_tag)
+{
+    if (__r2.empty())
+        return __r1;  // Everything matches an empty sequence
+    while (true)
+    {
+        // Find first element in sequence 1 that matchs *__first2, with a mininum of loop checks
+        while (true)
+        {
+            if (__r1.empty())  // return __last1 if no element matches *__first2
+                return __r1;
+            if (__pred(__r1.front(), __r2.front()))
+                break;
+            __r1.pop_front();
+        }
+        // *__first1 matches *__first2, now match elements after here
+        _ForwardRange1 __m1 = __r1;
+        _ForwardRange2 __m2 = __r2;
+        while (true)
+        {
+	    __m2.pop_front();
+            if (__m2.empty())  // If pattern exhausted, __first1 is the answer (works for 1 element pattern)
+                return __r1.before(__m1);
+	    __m1.pop_front();
+            if (__m1.empty())  // Otherwise if source exhaused, pattern not found
+                return __m1;
+            if (!__pred(__m1.front(), __m2.front()))  // if there is a mismatch, restart with a new __first1
+            {
+                __r1.pop_front();
+                break;
+            }  // else there is a match, check next elements
+        }
+    }
+}
+
+template <class _BinaryPredicate, class _RandomAccessRange1, class _RandomAccessRange2>
+_RandomAccessRange1
+__search(_RandomAccessRange1 __r1,
+           _RandomAccessRange2 __r2, _BinaryPredicate __pred,
+           random_access_range_tag, random_access_range_tag)
+{
+    typedef typename std::range_traits<_RandomAccessRange1>::length_type _D1;
+    typedef typename std::range_traits<_RandomAccessRange2>::length_type _D2;
+    // Take advantage of knowing source and pattern lengths.  Stop short when source is smaller than pattern
+    _D2 __len2 = __r2.length();
+    if (__len2 == 0)
+        return __r1;
+    _D1 __len1 = __r1.length();
+    if (__len1 < __len2)
+        return __r1.after(__r1);
+    const _RandomAccessRange1 __s = __r1 - (__len2 - 1);  // Start of pattern match can't go beyond here
+    while (true)
+    {
+#if !_LIBCPP_UNROLL_LOOPS
+        while (true)
+        {
+            if (__r1 == __s)
+                return __r1.after(__r1);
+            if (__pred(__r1.front(), __r2.front()))
+                break;
+            __r1.pop_front();
+        }
+#else  // !_LIBCPP_UNROLL_LOOPS
+        for (_D1 __loop_unroll = __s.length() / 4; __loop_unroll > 0; --__loop_unroll)
+        {
+            if (__pred(__r1.first(), __r2.first()))
+                goto __phase2;
+	    __r1.pop_front();
+            if (__pred(__r1.first(), __r2.first()))
+                goto __phase2;
+	    __r1.pop_front();
+            if (__pred(__r1.first(), __r2.first()))
+                goto __phase2;
+	    __r1.pop_front();
+            if (__pred(__r1.first(), __r2.first()))
+                goto __phase2;
+            __r1.pop_front();
+        }
+        switch (__s.length())
+        {
+        case 3:
+            if (__pred(__r1.first(), __r2.first()))
+                break;
+            __r1.pop_front();
+        case 2:
+            if (__pred(__r1.first(), __r2.first()))
+                break;
+            __r1.first();
+        case 1:
+            if (__pred(__r1.first(), __r2.first()))
+                break;
+        case 0:
+            return __r1.after(__r1);
+        }
+    __phase2:
+#endif  // !_LIBCPP_UNROLL_LOOPS
+        _RandomAccessRange1 __m1 = __r1;
+        _RandomAccessRange2 __m2 = __r2;
+#if !_LIBCPP_UNROLL_LOOPS
+         while (true)
+         {
+	     __m2.pop_front();
+             if (__m2.epmty())
+                 return __r1.before(__m1);
+             __m1.pop_front();          // no need to check range on __m1 because __s guarantees we have enough source
+             if (!__pred(*__m1, *__m2))
+             {
+                 __r1.pop_front();
+                 break;
+             }
+         }
+#else  // !_LIBCPP_UNROLL_LOOPS
+	__m2.pop_front();
+	__m1.pop_front();
+        for (_D2 __loop_unroll = __m2.length() / 4; __loop_unroll > 0; --__loop_unroll)
+        {
+            if (!__pred(__m1.front(), __m2.front()))
+                goto __continue;
+	    __m1.pop_front(); __m2.pop_front();
+            if (!__pred(__m1.first(), __m2.first()))
+                goto __continue;
+	    __m1.pop_front(); __m2.pop_front();
+            if (!__pred(__m1.front(), __m2.front()))
+                goto __continue;
+	    __m1.pop_front(); __m2.pop_front();
+            if (!__pred(__m1.front(), __m2.front()))
+                goto __continue;
+	    __m1.pop_front(); __m2.pop_front();
+        }
+        switch (__m2.length())
+        {
+        case 3:
+            if (!__pred(__m1.front(), __m2.front()))
+                break;
+	    __m1.pop_front(); __m2.pop_front();
+        case 2:
+            if (!__pred(__m1.front(), __m2.front()))
+                break;
+	    __m1.pop_front(); __m2.pop_front();
+        case 1:
+            if (!__pred(__m1.front(), __m2.front()))
+                break;
+        case 0:
+            return __r1.before(__m1);
+        }
+    __continue:
+        __r1.pop_front();
+#endif  // !_LIBCPP_UNROLL_LOOPS
+    }
+}
+
+template <class _ForwardRange1, class _ForwardRange2, class _BinaryPredicate>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange1
+search(_ForwardRange1 __r1,
+       _ForwardRange2 __r2, _BinaryPredicate __pred)
+{
+    return _VSTD::__search<typename add_lvalue_reference<_BinaryPredicate>::type>
+                         (__r1, __r2, __pred,
+                          typename std::range_traits<_ForwardRange1>::range_category(),
+                          typename std::range_traits<_ForwardRange2>::range_category());
+}
+
+template <class _ForwardRange1, class _ForwardRange2>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange1
+search(_ForwardRange1 __r1,
+       _ForwardRange2 __r2)
+{
+    typedef typename std::range_traits<_ForwardRange1>::value_type __v1;
+    typedef typename std::range_traits<_ForwardRange2>::value_type __v2;
+    return _VSTD::search(__r1, __r2, __equal_to<__v1, __v2>());
+}
+
+template <class _BinaryPredicate, class _ForwardRange, class _Size, class _Tp>
+_ForwardRange
+__search_n(_ForwardRange __r,
+           _Size __count, const _Tp& __value_, _BinaryPredicate __pred, forward_range_tag)
+{
+    if (__count <= 0)
+        return __r;
+    while (true)
+    {
+        // Find first element in sequence that matchs __value_, with a mininum of loop checks
+        while (true)
+        {
+            if (__r.empty())  // return __last if no element matches __value_
+                return __r;
+            if (__pred(__r.front(), __value_))
+                break;
+            __r.front();
+        }
+        // *__first matches __value_, now match elements after here
+        _ForwardRange __m = __r;
+        _Size __c(0);
+        while (true)
+        {
+            if (++__c == __count)  // If pattern exhausted, __first is the answer (works for 1 element pattern)
+                return __r.before(__m);
+	    __m.pop_front();
+            if (__m.epmty())  // Otherwise if source exhaused, pattern not found
+                return __m;
+            if (!__pred(__m.front(), __value_))  // if there is a mismatch, restart with a new __first
+            {
+                __r = __m;
+                __r.pop_front();
+                break;
+            }  // else there is a match, check next elements
+        }
+    }
+}
+
+template <class _BinaryPredicate, class _RandomAccessRange, class _Size, class _Tp>
+_RandomAccessRange
+__search_n(_RandomAccessRange __r,
+           _Size __count, const _Tp& __value_, _BinaryPredicate __pred, random_access_range_tag)
+{
+    if (__count <= 0)
+        return __r;
+    _Size __len = static_cast<_Size>(__r.size());
+    if (__len < __count)
+        return __r.after(__r);
+    const _RandomAccessRange __s = __r.after(__r - (__count - 1));  // Start of pattern match can't go beyond here
+    while (true)
+    {
+        // Find first element in sequence that matchs __value_, with a mininum of loop checks
+        while (true)
+        {
+            if (__r.before(__s).empty())  // return __last if no element matches __value_
+                return __r.after(__r);
+            if (__pred(__r.front(), __value_))
+                break;
+            __r.pop_front();
+        }
+        // *__first matches __value_, now match elements after here
+        _RandomAccessRange __m = __r;
+        _Size __c(0);
+        while (true)
+        {
+            if (++__c == __count)  // If pattern exhausted, __first is the answer (works for 1 element pattern)
+                return __r.before(__m);
+	    __m.pop_front();          // no need to check range on __m because __s guarantees we have enough source
+            if (!__pred(__m.front(), __value_))  // if there is a mismatch, restart with a new __first
+            {
+                __r = __m;
+                __r.pop_front();
+                break;
+            }  // else there is a match, check next elements
+        }
+    }
+}
+
+template <class _ForwardRange, class _Size, class _Tp, class _BinaryPredicate>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+search_n(_ForwardRange __r,
+         _Size __count, const _Tp& __value_, _BinaryPredicate __pred)
+{
+    return _VSTD::__search_n<typename add_lvalue_reference<_BinaryPredicate>::type>
+           (__r, __count, __value_, __pred, typename range_traits<_ForwardRange>::range_category());
+}
+
+template <class _ForwardRange, class _Size, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+search_n(_ForwardRange __r, _Size __count, const _Tp& __value_)
+{
+    typedef typename range_traits<_ForwardRange>::value_type __v;
+    return _VSTD::search_n(__r, __count, __value_, __equal_to<__v, _Tp>());
+}
+
+// copy magic not implemented, only the "dumb" version.
+
+template <class _InputRange, class _OutputRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+copy(_InputRange __r, _OutputRange __result)
+{
+    for (; !__r.empty(); __r.pop_front(), __result.pop_front())
+        __result.front() = __r.front();
+    return __result;
+}
+
+// copy_backward magic not implemented, only the "dumb" version.
+
+template <class _BidirectionalRange, class _OutputRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+copy_backward(_BidirectionalRange __r, _OutputRange __result)
+{
+    while (!__r.empty()) {
+	__result.back() = __r.back(); 
+        __result.pop_back(); __r.pop_back();
+    }
+    return __result;
+}
+
+template<class _InputRange, class _OutputRange, class _Predicate>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+copy_if(_InputRange __r,
+        _OutputRange __result, _Predicate __pred)
+{
+    for (; !__r.empty(); __r.pop_front())
+    {
+        if (__pred(__r.front()))
+        {
+            __result.front() = __r.front();
+            __result.pop_front();
+        }
+    }
+    return __result;
+}
+
+template<class _InputRange, class _Size, class _OutputRange>
+inline _LIBCPP_INLINE_VISIBILITY
+typename enable_if
+<
+    __is_input_range<_InputRange>::value &&
+   !__is_random_access_range<_InputRange>::value,
+    _OutputRange
+>::type
+copy_n(_InputRange __r, _Size __n, _OutputRange __result)
+{
+    if (__n > 0)
+    {
+        __result.front() = __r.front();
+        __result.pop_front();
+        for (--__n; __n > 0; --__n)
+        {
+            __r.pop_front();
+            __result.front() = __r.front();
+            __result.pop_front();
+        }
+    }
+    return __result;
+}
+
+template<class _InputRange, class _Size, class _OutputRange>
+inline _LIBCPP_INLINE_VISIBILITY
+typename enable_if
+<
+    __is_random_access_range<_InputRange>::value,
+    _OutputRange
+>::type
+copy_n(_InputRange __r, _Size __n, _OutputRange __result)
+{
+    // could define a take function for slicing as below
+    return _VSTD::copy(__r.before(__r + __n), __result);
+}
+
+template <class _InputRange, class _OutputRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+move(_InputRange __r, _OutputRange __result)
+{
+    for (; !__r.empty(); __r.pop_front(), __result.pop_front())
+        __result.front() = _VSTD::move(__r.front());
+    return __result;
+}
+
+// move with the memmove magic not implemented
+
+template <class _InputRange, class _OutputRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+move_backward(_InputRange __r, _OutputRange __result)
+{
+    while (!__r.empty()) {
+        __result.back() = _VSTD::move(__r.back());
+	__result.pop_back();
+    }
+    return __result;
+}
+
+// move_backward with memmove not implemented
+
+// range_swap?
+
+template <class _InputRange, class _OutputRange, class _UnaryOperation>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+transform(_InputRange __r, _OutputRange __result, _UnaryOperation __op)
+{
+    for (; !__r.empty(); __r.pop_front(), __result.pop_front())
+        __result.front() = __op(__r.front());
+    return __result;
+}
+
+template <class _InputRange1, class _InputRange2, class _OutputRange, class _BinaryOperation>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+transform(_InputRange1 __r1, _InputRange2 __r2,
+          _OutputRange __result, _BinaryOperation __binary_op)
+{
+    for (; !__r1.empty(); __r1.pop_front(), __r2.pop_front(), __result.pop_front())
+        __result.front() = __binary_op(__r1.front(), __r2.front());
+    return __result;
+}
+
+// replace
+
+template <class _ForwardRange, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+void
+replace(_ForwardRange __r, const _Tp& __old_value, const _Tp& __new_value)
+{
+    for (; !__r.empty(); __r.pop_front())
+        if (__r.front() == __old_value)
+            __r.front() = __new_value;
+}
+
+// replace_if
+
+template <class _ForwardRange, class _Predicate, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+void
+replace_if(_ForwardRange __r, _Predicate __pred, const _Tp& __new_value)
+{
+    for (; !__r.empty(); __r.pop_front())
+        if (__pred(__r.front()))
+            __r.front() = __new_value;
+}
+
+// replace_copy
+
+template <class _InputRange, class _OutputRange, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+replace_copy(_InputRange __r, _OutputRange __result,
+             const _Tp& __old_value, const _Tp& __new_value)
+{
+    for (; !__r.empty(); __r.pop_front(), __result.pop_front())
+        if (__r.front() == __old_value)
+            __result.front() = __new_value;
+        else
+            __result.front() = __r.front();
+    return __result;
+}
+
+// replace_copy_if
+
+template <class _InputRange, class _OutputRange, class _Predicate, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+replace_copy_if(_InputRange __r, _OutputRange __result,
+                _Predicate __pred, const _Tp& __new_value)
+{
+    for (; !__r.empty(); __r.pop_front(), __result.pop_front())
+        if (__pred(__r.front()))
+            __result.front() = __new_value;
+        else
+            __result.front() = __r.front();
+    return __result;
+}
+
+// fill_n
+
+template <class _OutputRange, class _Size, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+fill_n(_OutputRange __r, _Size __n, const _Tp& __value_, false_type)
+{
+    for (; __n > 0; __r.pop_front(), --__n)
+        __r.front() = __value_;
+    return __r;
+}
+
+// fill_n with memset not implemented
+
+// fill
+
+template <class _ForwardRange, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+void
+__fill(_ForwardRange __r, const _Tp& __value_, forward_range_tag)
+{
+    for (; __r.empty(); __r.pop_front())
+        __r.front() = __value_;
+}
+
+template <class _RandomAccessRange, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+void
+__fill(_RandomAccessRange __r, const _Tp& __value_, random_access_range_tag)
+{
+    _VSTD::fill_n(__r, __r.length(), __value_);
+}
+
+template <class _ForwardRange, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+void
+fill(_ForwardRange __r, const _Tp& __value_)
+{
+    _VSTD::__fill(__r, __value_, typename range_traits<_ForwardRange>::range_category());
+}
+
+// generate
+
+template <class _ForwardRange, class _Generator>
+inline _LIBCPP_INLINE_VISIBILITY
+void
+generate(_ForwardRange __r, _Generator __gen)
+{
+    for (; !__r.empty(); __r.pop_front())
+        __r.front() = __gen();
+}
+
+// generate_n
+
+template <class _OutputRange, class _Size, class _Generator>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+generate_n(_OutputRange __r, _Size __n, _Generator __gen)
+{
+    for (; __n > 0; __r.pop_front(), --__n)
+        __r.front() = __gen();
+    return __r;
+}
+
+// remove
+
+template <class _ForwardRange, class _Tp>
+_ForwardRange
+remove(_ForwardRange __r, const _Tp& __value_)
+{
+    _ForwardRange __m = _VSTD::find(__r, __value_);
+    if (!__m.empty())
+    {
+        _ForwardRange __i = __m;
+	__i.pop_front();
+        while (!__i.empty())
+        {
+            if (!(__i.front() == __value_))
+            {
+                __m.front() = _VSTD::move(__i.front());
+                __m.pop_front();
+            }
+	    __i.pop_front();
+        }
+    }
+    return __r.before(__m);
+}
+
+// remove_if
+
+template <class _ForwardRange, class _Predicate>
+_ForwardRange
+remove_if(_ForwardRange __r, _Predicate __pred)
+{
+    _ForwardRange __m = _VSTD::find_if<_ForwardRange, typename add_lvalue_reference<_Predicate>::type>
+                           (__r, __pred);
+    if (!__m.empty())
+    {
+        _ForwardRange __i = __m;
+	__i.pop_front();
+        while (!__i.empty())
+        {
+            if (!__pred(__i.front()))
+            {
+                __m.front() = _VSTD::move(__i.front());
+                __m.pop_front();
+            }
+	    __i.pop_front();
+        }
+    }
+    return __r.before(__m);
+}
+
+// remove_copy
+
+template <class _InputRange, class _OutputRange, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+remove_copy(_InputRange __r, _OutputRange __result, const _Tp& __value_)
+{
+    for (; !__r.empty(); __r.pop_front())
+    {
+        if (!(__r.front() == __value_))
+        {
+            __result.front() = __r.front();
+            __result.pop_front();
+        }
+    }
+    return __result;
+}
+
+// remove_copy_if
+
+template <class _InputRange, class _OutputRange, class _Predicate>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+remove_copy_if(_InputRange __r, _OutputRange __result, _Predicate __pred)
+{
+    for (; !__r.empty(); __r.pop_front())
+    {
+        if (!__pred(__r.front()))
+        {
+            __result.front() = __r.front();
+            __result.front();
+        }
+    }
+    return __result;
+}
+
+// unique
+
+template <class _ForwardRange, class _BinaryPredicate>
+_ForwardRange
+unique(_ForwardRange __r, _BinaryPredicate __pred)
+{
+    _ForwardRange __m = _VSTD::adjacent_find<_ForwardRange, typename add_lvalue_reference<_BinaryPredicate>::type>
+                                 (__r, __pred);
+    if (!__m.empty())
+    {
+        // ...  a  a  ?  ...
+        //      f     i
+        _ForwardRange __i = __m;
+	__i.pop_front();
+        for (__i.pop_front(); !__i.empty(); __i.pop_front())
+            if (!__pred(__m.front(), __i.front())) {
+		__m.pop_front();
+                __m.front() = _VSTD::move(__i.front());
+	    }
+        __m.pop_front();
+    }
+    return __r.before(__m);
+}
+
+template <class _ForwardRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+unique(_ForwardRange __first, _ForwardRange __last)
+{
+    typedef typename range_traits<_ForwardRange>::value_type __v;
+    return _VSTD::unique(__first, __last, __equal_to<__v>());
+}
+
+// unique_copy
+
+template <class _BinaryPredicate, class _InputRange, class _OutputRange>
+_OutputRange
+__unique_copy(_InputRange __r, _OutputRange __result, _BinaryPredicate __pred,
+              input_range_tag, output_range_tag)
+{
+    if (!__r.empty())
+    {
+        typename range_traits<_InputRange>::value_type __t(__r.front());
+        __result.front() = __t;
+        __result.pop_front();
+        for (__r.pop_front(); !__r.empty(); __r.pop_front())
+        {
+            if (!__pred(__t, __r.front()))
+            {
+                __t = __r.front();
+                __result.front() = __t;
+                __result.pop_front();
+            }
+        }
+    }
+    return __result;
+}
+
+template <class _BinaryPredicate, class _ForwardRange, class _OutputRange>
+_OutputRange
+__unique_copy(_ForwardRange __r, _OutputRange __result, _BinaryPredicate __pred,
+              forward_range_tag, output_range_tag)
+{
+    if (!__r.empty())
+    {
+        _ForwardRange __i = __r;
+        __result.front() = __i.front();
+        __result.pop_front();
+        for (__r.pop_front(); !__r.empty(); __r.pop_front())
+        {
+            if (!__pred(__i.front(), __r.front()))
+            {
+                __result.front() = __r.front();
+                __result.pop_front();
+                __i = __r;
+            }
+        }
+    }
+    return __result;
+}
+
+template <class _BinaryPredicate, class _InputRange, class _ForwardRange>
+_ForwardRange
+__unique_copy(_InputRange __r, _ForwardRange __result, _BinaryPredicate __pred,
+              input_range_tag, forward_range_tag)
+{
+    if (!__r.empty())
+    {
+        __result.first() = __r.first();
+        for (__r.pop_front(); !__r.empty(); __r.pop_front())
+            if (!__pred(__result.front(), __r.front())) {
+		__result.pop_front();
+                __result.front() = __r.front();
+	    }
+        __result.pop_front();
+    }
+    return __result;
+}
+
+template <class _InputRange, class _OutputRange, class _BinaryPredicate>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+unique_copy(_InputRange __r, _OutputRange __result, _BinaryPredicate __pred)
+{
+    return _VSTD::__unique_copy<typename add_lvalue_reference<_BinaryPredicate>::type>
+                              (__r, __result, __pred,
+                               typename range_traits<_InputRange>::range_category(),
+                               typename range_traits<_OutputRange>::range_category());
+}
+
+template <class _InputRange, class _OutputRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+unique_copy(_InputRange __r, _OutputRange __result)
+{
+    typedef typename range_traits<_InputRange>::value_type __v;
+    return _VSTD::unique_copy(__r, __result, __equal_to<__v>());
+}
+
+// More to come
+
+_LIBCPP_END_NAMESPACE_STD
+
+#endif  // _LIBCPP_ALGORITHM
+
+// Local Variables:
+// c-basic-offset: 4
+// End:
