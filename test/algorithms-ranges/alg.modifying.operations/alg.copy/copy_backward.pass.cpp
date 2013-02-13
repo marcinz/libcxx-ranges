@@ -31,7 +31,7 @@ test()
     int ib[N] = {0};
 
     InRange irg(std::make_iter_range(ia, ia+N));
-    OutRange org(std::make_single_iter_range(ib+N-1));
+    OutRange org(std::make_single_iter_backward_range(ib+N-1));
 
     OutRange r = std::copy_backward(irg, org);
     assert(base(r).base() == ib-1);
@@ -41,9 +41,9 @@ test()
 
 int main()
 {
-    test<bidirectional_range<std::iter_range<const int*> >, bidirectional_range<std::single_iter_range<int*> > >();
-    test<bidirectional_range<std::iter_range<const int*> >, random_access_range<std::single_iter_range<int*> >  >();
+    test<bidirectional_range<std::iter_range<const int*> >, bidirectional_range<std::single_iter_backward_range<int*> > >();
+    test<bidirectional_range<std::iter_range<const int*> >, random_access_range<std::single_iter_backward_range<int*> >  >();
 
-    test<random_access_range<std::iter_range<int*> >, bidirectional_range<std::single_iter_range<int*> > >();
-    test<random_access_range<std::iter_range<int*> >, random_access_range<std::single_iter_range<int*> >  >();
+    test<random_access_range<std::iter_range<int*> >, bidirectional_range<std::single_iter_backward_range<int*> > >();
+    test<random_access_range<std::iter_range<int*> >, random_access_range<std::single_iter_backward_range<int*> >  >();
 }

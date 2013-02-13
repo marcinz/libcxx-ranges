@@ -13,10 +13,12 @@ private:
     
     template <class U> friend class output_range;
 public:
-    typedef std::output_range_tag                        range_category;
-    typedef typename std::range_traits<Rg>::value_type   value_type;
-    typedef typename std::range_traits<Rg>::length_type length_type;
-    typedef typename std::range_traits<Rg>::reference    reference;
+    typedef std::output_range_tag                                      range_category;
+    typedef typename std::range_traits<Rg>::value_type                 value_type;
+    typedef typename std::range_traits<Rg>::length_type                length_type;
+    typedef typename std::range_traits<Rg>::reference                  reference;
+    typedef output_range<typename std::range_traits<Rg>::before_type>  before_type;
+    typedef output_range<typename std::range_traits<Rg>::after_type>   after_type;
 
     Rg base() const {return rg_;}
     
@@ -38,10 +40,12 @@ private:
     
     template <class U> friend class input_range;
 public:
-    typedef std::input_range_tag                        range_category;
-    typedef typename std::range_traits<Rg>::value_type   value_type;
-    typedef typename std::range_traits<Rg>::length_type length_type;
-    typedef typename std::range_traits<Rg>::reference    reference;
+    typedef std::input_range_tag                                      range_category;
+    typedef typename std::range_traits<Rg>::value_type                value_type;
+    typedef typename std::range_traits<Rg>::length_type               length_type;
+    typedef typename std::range_traits<Rg>::reference                 reference;
+    typedef input_range<typename std::range_traits<Rg>::before_type>  before_type;
+    typedef input_range<typename std::range_traits<Rg>::after_type>   after_type;
 
     Rg base() const {return rg_;}
 
@@ -68,10 +72,12 @@ private:
     
     template <class U> friend class forward_range;
 public:
-    typedef std::forward_range_tag                        range_category;
-    typedef typename std::range_traits<Rg>::value_type   value_type;
-    typedef typename std::range_traits<Rg>::length_type  length_type;
-    typedef typename std::range_traits<Rg>::reference    reference;
+    typedef std::forward_range_tag                                      range_category;
+    typedef typename std::range_traits<Rg>::value_type                  value_type;
+    typedef typename std::range_traits<Rg>::length_type                 length_type;
+    typedef typename std::range_traits<Rg>::reference                   reference;
+    typedef forward_range<typename std::range_traits<Rg>::before_type>  before_type;
+    typedef forward_range<typename std::range_traits<Rg>::after_type>   after_type;
 
     Rg base() const {return rg_;}
 
@@ -83,9 +89,9 @@ public:
     reference front() const {return rg_.front();}
     void pop_front() {rg_.pop_front();}
     bool empty() const {return rg_.empty();}
-    forward_range before(const forward_range& r) const {return rg_.before(r);}
+    before_type before(const forward_range& r) const {return rg_.before(r);}
     forward_range before_including(const forward_range& r) const {return rg_.before_including(r);}
-    forward_range after(const forward_range& r) const {return rg_.after(r);}
+    after_type after(const forward_range& r) const {return rg_.after(r);}
     forward_range after_including(const forward_range& r) const {return rg_.after_including(r);}
 
     friend bool operator==(const forward_range& x, const forward_range& y)
@@ -102,10 +108,12 @@ private:
     
     template <class U> friend class bidirectional_range;
 public:
-    typedef std::bidirectional_range_tag                        range_category;
-    typedef typename std::range_traits<Rg>::value_type   value_type;
-    typedef typename std::range_traits<Rg>::length_type length_type;
-    typedef typename std::range_traits<Rg>::reference    reference;
+    typedef std::bidirectional_range_tag                                      range_category;
+    typedef typename std::range_traits<Rg>::value_type                        value_type;
+    typedef typename std::range_traits<Rg>::length_type                       length_type;
+    typedef typename std::range_traits<Rg>::reference                         reference;
+    typedef bidirectional_range<typename std::range_traits<Rg>::before_type>  before_type;
+    typedef bidirectional_range<typename std::range_traits<Rg>::after_type>   after_type;
 
     Rg base() const {return rg_;}
 
@@ -119,9 +127,9 @@ public:
     reference back() const {return rg_.back();}
     void pop_back() {rg_.pop_back();}
     bool empty() const {return rg_.empty();}
-    bidirectional_range before(const bidirectional_range& r) const {return rg_.before(r);}
+    before_type before(const bidirectional_range& r) const {return rg_.before(r);}
     bidirectional_range before_including(const bidirectional_range& r) const {return rg_.before_including(r);}
-    bidirectional_range after(const bidirectional_range& r) const {return rg_.after(r);}
+    after_type after(const bidirectional_range& r) const {return rg_.after(r);}
     bidirectional_range after_including(const bidirectional_range& r) const {return rg_.after_including(r);}
 
     friend bool operator==(const bidirectional_range& x, const bidirectional_range& y)
@@ -138,10 +146,12 @@ private:
     
     template <class U> friend class random_access_range;
 public:
-    typedef std::random_access_range_tag                        range_category;
-    typedef typename std::range_traits<Rg>::value_type   value_type;
-    typedef typename std::range_traits<Rg>::length_type  length_type;
-    typedef typename std::range_traits<Rg>::reference    reference;
+    typedef std::random_access_range_tag                                      range_category;
+    typedef typename std::range_traits<Rg>::value_type                        value_type;
+    typedef typename std::range_traits<Rg>::length_type                       length_type;
+    typedef typename std::range_traits<Rg>::reference                         reference;
+    typedef random_access_range<typename std::range_traits<Rg>::before_type>  before_type;
+    typedef random_access_range<typename std::range_traits<Rg>::after_type>   after_type;
 
     Rg base() const {return rg_;}
 
@@ -156,9 +166,9 @@ public:
     void pop_back() {rg_.pop_back();}
     bool empty() const {return rg_.empty();}
     length_type length() const {return rg_.length();}
-    random_access_range before(const random_access_range& r) const {return rg_.before(r);}
+    before_type before(const random_access_range& r) const {return before_type(rg_.before(r.base()));}
     random_access_range before_including(const random_access_range& r) const {return rg_.before_including(r);}
-    random_access_range after(const random_access_range& r) const {return rg_.after(r);}
+    after_type after(const random_access_range& r) const {return rg_.after(r);}
     random_access_range after_including(const random_access_range& r) const {return rg_.after_including(r);}
     random_access_range operator+(length_type n) const 
         {random_access_range tmp(*this); tmp+= n; return tmp;}
