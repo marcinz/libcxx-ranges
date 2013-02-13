@@ -1,0 +1,25 @@
+- Iterators always deliminate a range.  Even a single iterator is part of a range, whether the range is known explicitly by a matching begin or end iterator, or implicitly by, for example, knowing how many times an iterator can be safely incremented.
+- Many algorithms returning a single iterator rely on this iterator deliminating a subrange of an input range.  Some subranges use the begin or end iterator of one of the input ranges while others are "proper" and rely on some implicit information to know the other end of the subrange.
+- Ranges could have comparison operators <, >, >=, and =<, but these are not implemented yet.
+
+- after(r, r) could be just r.end() and before(r, r) could be just r.begin().
+- The "+" and "-" operators in random access ranges could be renamed ("slicing" in D).
+- pop_front() and pop_back() could have the operator "++" and "--" versions.  This would allow more ellegance.
+- Subrange methods can return different types than the types of ranges they are invoked on.  This is necessary to, for example, use subrange method with single_iterator_ranges.
+- There is no special "save" function.  Copying works just as it does for iterators, "saving" a range if it is a forward range or better.
+- difference_type renamed to length_type
+- There are many possible optimizations, some easy, and some that would potentially need help from the compiler.  Eg.:
+  - easy: add begin() and end() methods to ranges that would allow comparing ends of subranges rather than the whole subrange.  The results of these methods would be opaque objects only useful in comparisons.
+  - hard: sharing of implementation details between ranges such as in __search_n for random access iterators.  There, [__first, __s) and [__first, __last) are two different ranges, but they share __first.
+- Optimizations are possible with iterators because we have explicit access to the representation of ranges and ranges are only implicit.  With ranges as primitives, we loose access to representation, so it is much harder to optimize by hand.
+- Iterators are more efficient when moving back and forth is required in a bidirectional range.  Iterator can be repeatedly incremented/decremented, but range cannot "go back" to the elements it "gave up" by popping the front or the back.
+
+- back access should be efficient (not use a decrement of an iterator).
+
+TODO:
+-Specify preconditions for the before etc. methods
+ - Since ranges are opaque with respect to their implementation, changing a counted range into a bounded range actually results in a type change.  When using iterators, the change occurs in number of arguments, changing a single iterator into a pair of iterators.  Unfortunately, with ranges, the change in the implementation has to be hidden in a new return type.  This change can be handled either with static if, as in D, with additional associated types for range slices resulting from "before" and "after," or with an entirely parallel concept hierarchy for bounded and unbounded ranges.
+   - Currently, we choose to only have a before type and an after type because the including versions do not change unbounded ranges into bounded ones.  We also require that bounded ranges return the type of the original range.  Unfortunately, even the output and input ranges must define before_type and after_type in this arrangement, despite not defining the before and after functions.
+   - Perhaps subrange operations should be disabled alltogether on unbounded ranges?  That would be different from iterators.
+- It probably does not make sense to have bidirectional bounded ranges.  They all should be forward ranges.  Again, D allows to test such things with a static if, but with concepts, a parallel hierarchy must be created if we want to avoid pop_back and such on unbounded ranges.
+- Infinite (unbounded) ranges can be traversed forward or backward.  It is up to the user to know which kind of range is she dealing with.  Also, there can be unbounded ranges in both directions.
