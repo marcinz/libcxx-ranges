@@ -17,7 +17,6 @@
 #include <algorithm-range>
 #include <cassert>
 
-#include "test_iterators.h"
 #include "test_ranges.h"
 
 template <class Range>

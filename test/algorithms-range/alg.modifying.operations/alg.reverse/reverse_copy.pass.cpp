@@ -25,7 +25,8 @@ test()
     const int ia[] = {0};
     const unsigned sa = sizeof(ia)/sizeof(ia[0]);
     int ja[sa] = {-1};
-    OutRange r = std::reverse_copy(InRange(std::make_iter_range(ia, ia)), OutRange(ja));
+    OutRange r = std::reverse_copy(InRange(std::make_iter_range(ia, ia)), 
+				   OutRange(std::make_single_iter_backward_range(ja)));
     assert(base(r).base() == ja);
     assert(ja[0] == -1);
     r = std::reverse_copy(InRange(std::make_iter_range(ia, ia+sa)), 
@@ -65,21 +66,18 @@ test()
 
 int main()
 {
-    test<bidirectional_range<const int*>, output_range<int*> >();
-    test<bidirectional_range<const int*>, forward_range<int*> >();
-    test<bidirectional_range<const int*>, bidirectional_range<int*> >();
-    test<bidirectional_range<const int*>, random_access_range<int*> >();
-    test<bidirectional_range<const int*>, int*>();
+    test<bidirectional_range<std::iter_range<const int*> >, output_range<std::single_iter_backward_range<int*> > >();
+    test<bidirectional_range<std::iter_range<const int*> >, forward_range<std::single_iter_backward_range<int*> > >();
+    test<bidirectional_range<std::iter_range<const int*> >, bidirectional_range<std::single_iter_backward_range<int*> > >();
+    test<bidirectional_range<std::iter_range<const int*> >, random_access_range<std::single_iter_backward_range<int*> > >();
 
-    test<random_access_range<const int*>, output_range<int*> >();
-    test<random_access_range<const int*>, forward_range<int*> >();
-    test<random_access_range<const int*>, bidirectional_range<int*> >();
-    test<random_access_range<const int*>, random_access_range<int*> >();
-    test<random_access_range<const int*>, int*>();
+    test<random_access_range<std::iter_range<const int*> >, output_range<std::single_iter_backward_range<int*> > >();
+    test<random_access_range<std::iter_range<const int*> >, forward_range<std::single_iter_backward_range<int*> > >();
+    test<random_access_range<std::iter_range<const int*> >, bidirectional_range<std::single_iter_backward_range<int*> > >();
+    test<random_access_range<std::iter_range<const int*> >, random_access_range<std::single_iter_backward_range<int*> > >();
 
-    test<const int*, output_range<int*> >();
-    test<const int*, forward_range<int*> >();
-    test<const int*, bidirectional_range<int*> >();
-    test<const int*, random_access_range<int*> >();
-    test<const int*, int*>();
+    test<std::iter_range<const int*> , output_range<std::single_iter_backward_range<int*> > >();
+    test<std::iter_range<const int*> , forward_range<std::single_iter_backward_range<int*> > >();
+    test<std::iter_range<const int*> , bidirectional_range<std::single_iter_backward_range<int*> > >();
+    test<std::iter_range<const int*> , random_access_range<std::single_iter_backward_range<int*> > >();
 }
