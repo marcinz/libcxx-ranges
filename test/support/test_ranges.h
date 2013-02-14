@@ -3,7 +3,7 @@
 #ifndef RANGES_H
 #define RANGES_H
 
-#include <ranges>
+#include <range>
 
 template <class Rg>
 class output_range
