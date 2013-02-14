@@ -202,7 +202,7 @@ inline _LIBCPP_INLINE_VISIBILITY
 _InputRange
 find_if(_InputRange __r, _Predicate __pred)
 {
-    for (; !__r.empty(); __r.pop_front)
+    for (; !__r.empty(); __r.pop_front())
         if (__pred(__r.front()))
             break;
     return __r;
@@ -1271,6 +1271,55 @@ unique_copy(_InputRange __r, _OutputRange __result)
     typedef typename range_traits<_InputRange>::value_type __v;
     return _VSTD::unique_copy(__r, __result, __equal_to<__v>());
 }
+
+// reverse
+
+template <class _BidirectionalRange>
+inline _LIBCPP_INLINE_VISIBILITY
+void
+__reverse(_BidirectionalRange __r, bidirectional_range_tag)
+{
+    while (!__r.empty())
+    {
+	// There is no convenient way to check if there is only one element in the range as there is with iterators.
+	_BidirectionalRange __tmp = __r;
+	__tmp.pop_back();
+        if (__tmp.empty())
+            break;
+        swap(__r.front(), __r.back());
+        __r.pop_front(); __r.pop_back();
+    }
+}
+
+template <class _RandomAccessRange>
+inline _LIBCPP_INLINE_VISIBILITY
+void
+__reverse(_RandomAccessRange __r, random_access_range_tag)
+{
+    for (; __r.length() > 1; __r.pop_front(), __r.pop_back())
+	swap(__r.front(), __r.back());
+}
+
+template <class _BidirectionalRange>
+inline _LIBCPP_INLINE_VISIBILITY
+void
+reverse(_BidirectionalRange __r)
+{
+    _VSTD::__reverse(__r, typename range_traits<_BidirectionalRange>::range_category());
+}
+
+// reverse_copy
+
+template <class _BidirectionalRange, class _OutputRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+reverse_copy(_BidirectionalRange __r, _OutputRange __result)
+{
+    for (; !__r.empty(); __r.pop_back(), __result.pop_front())
+        __result.front() = __r.back();
+    return __result;
+}
+
 
 // More to come
 
