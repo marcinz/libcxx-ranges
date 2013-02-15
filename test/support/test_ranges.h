@@ -89,10 +89,10 @@ public:
     reference front() const {return rg_.front();}
     void pop_front() {rg_.pop_front();}
     bool empty() const {return rg_.empty();}
-    before_type before(const forward_range& r) const {return rg_.before(r);}
-    forward_range before_including(const forward_range& r) const {return rg_.before_including(r);}
-    after_type after(const forward_range& r) const {return rg_.after(r);}
-    forward_range after_including(const forward_range& r) const {return rg_.after_including(r);}
+    before_type before(const forward_range& r) const {return before_type(rg_.before(r.base()));}
+    forward_range before_including(const forward_range& r) const {return forward_range(rg_.before_including(r.base()));}
+    after_type after(const forward_range& r) const {return after_type(rg_.after(r.base()));}
+    forward_range after_including(const forward_range& r) const {return forward_range(rg_.after_including(r.base()));}
 
     friend bool operator==(const forward_range& x, const forward_range& y)
         {return x.rg_ == y.rg_;}
@@ -127,10 +127,10 @@ public:
     reference back() const {return rg_.back();}
     void pop_back() {rg_.pop_back();}
     bool empty() const {return rg_.empty();}
-    before_type before(const bidirectional_range& r) const {return rg_.before(r);}
-    bidirectional_range before_including(const bidirectional_range& r) const {return rg_.before_including(r);}
-    after_type after(const bidirectional_range& r) const {return rg_.after(r);}
-    bidirectional_range after_including(const bidirectional_range& r) const {return rg_.after_including(r);}
+    before_type before(const bidirectional_range& r) const {return before_type(rg_.before(r.base()));}
+    bidirectional_range before_including(const bidirectional_range& r) const {return rg_.before_including(r.base());}
+    after_type after(const bidirectional_range& r) const {return after_type(rg_.after(r.base()));}
+    bidirectional_range after_including(const bidirectional_range& r) const {return rg_.after_including(r.base());}
 
     friend bool operator==(const bidirectional_range& x, const bidirectional_range& y)
         {return x.rg_ == y.rg_;}
@@ -167,9 +167,9 @@ public:
     bool empty() const {return rg_.empty();}
     length_type length() const {return rg_.length();}
     before_type before(const random_access_range& r) const {return before_type(rg_.before(r.base()));}
-    random_access_range before_including(const random_access_range& r) const {return rg_.before_including(r);}
-    after_type after(const random_access_range& r) const {return rg_.after(r);}
-    random_access_range after_including(const random_access_range& r) const {return rg_.after_including(r);}
+    random_access_range before_including(const random_access_range& r) const {return random_access_range(rg_.before_including(r.base()));}
+    after_type after(const random_access_range& r) const {return random_access_range(rg_.after(r.base()));}
+    random_access_range after_including(const random_access_range& r) const {return random_access_range(rg_.after_including(r.base()));}
     random_access_range operator+(length_type n) const 
         {random_access_range tmp(*this); tmp+= n; return tmp;}
     random_access_range& operator+=(length_type n) {rg_ += n; return *this;}

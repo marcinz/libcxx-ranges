@@ -568,10 +568,9 @@ __search(_ForwardRange1 __r1,
         _ForwardRange2 __m2 = __r2;
         while (true)
         {
-	    __m2.pop_front();
+	    __m2.pop_front(); __m1.pop_front();
             if (__m2.empty())  // If pattern exhausted, __first1 is the answer (works for 1 element pattern)
                 return __r1.before(__m1);
-	    __m1.pop_front();
             if (__m1.empty())  // Otherwise if source exhaused, pattern not found
                 return __m1;
             if (!__pred(__m1.front(), __m2.front()))  // if there is a mismatch, restart with a new __first1
@@ -598,16 +597,16 @@ __search(_RandomAccessRange1 __r1,
     _D1 __len1 = __r1.length();
     if (__len1 < __len2)
         return __r1.after(__r1);
-    const _RandomAccessRange1 __s = __r1 - (__len2 - 1);  // Start of pattern match can't go beyond here
+    const _RandomAccessRange1 __s = __r1 - __len2;  // Start of pattern match can't go beyond here
     while (true)
     {
 #if !_LIBCPP_UNROLL_LOOPS
         while (true)
         {
-            if (__r1 == __s)
-                return __r1.after(__r1);
             if (__pred(__r1.front(), __r2.front()))
                 break;
+            if (__r1.length() == __r2.length())
+                return __r1.after(__r1);
             __r1.pop_front();
         }
 #else  // !_LIBCPP_UNROLL_LOOPS
@@ -649,11 +648,10 @@ __search(_RandomAccessRange1 __r1,
 #if !_LIBCPP_UNROLL_LOOPS
          while (true)
          {
-	     __m2.pop_front();
-             if (__m2.epmty())
+	     __m2.pop_front(); __m1.pop_front();
+             if (__m2.empty())
                  return __r1.before(__m1);
-             __m1.pop_front();          // no need to check range on __m1 because __s guarantees we have enough source
-             if (!__pred(*__m1, *__m2))
+             if (!__pred(__m1.front(), __m2.front()))
              {
                  __r1.pop_front();
                  break;
