@@ -180,6 +180,16 @@ swap_ranges(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardItera
     return __first2;
 }
 
+template <class _ForwardRange1, class _ForwardRange2>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange2
+swap_ranges(_ForwardRange1 __r1, _ForwardRange2 __r2)
+{
+    for(; !__r1.empty(); __r1.pop_front(), __r2.pop_front())
+        swap(__r1.front(), __r2.front());
+    return __r2;
+}
+
 template<class _Tp, size_t _Np>
 inline _LIBCPP_INLINE_VISIBILITY
 void

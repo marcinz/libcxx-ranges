@@ -916,7 +916,7 @@ move_backward(_InputRange __r, _OutputRange __result)
 {
     while (!__r.empty()) {
         __result.back() = _VSTD::move(__r.back());
-	__result.pop_back();
+	__result.pop_back(); __r.pop_back();
     }
     return __result;
 }
@@ -1318,6 +1318,189 @@ reverse_copy(_BidirectionalRange __r, _OutputRange __result)
     return __result;
 }
 
+// rotate
+
+template <class _ForwardRange>
+_ForwardRange
+__rotate_left(_ForwardRange __r)
+{
+    typedef typename range_traits<_ForwardRange>::value_type value_type;
+    value_type __tmp = _VSTD::move(__r.front());
+    _ForwardRange __lm1 = _VSTD::move(_VSTD::next(__r), __r);
+    __lm1.front() = _VSTD::move(__tmp);
+    return __lm1;
+}
+
+template <class _BidirectionalRange>
+_BidirectionalRange
+__rotate_right(_BidirectionalRange __r)
+{
+    typedef typename range_traits<_BidirectionalRange>::value_type value_type;
+    value_type __tmp = _VSTD::move(__r.back());
+    _BidirectionalRange __fp1 = _VSTD::move_backward(_VSTD::prev(__r), __r);
+    __r.front() = _VSTD::move(__tmp);
+    return __r.after(__fp1);
+}
+
+// r1 is the whole range to be rotated, and r2 is the range of elements to be rotated to the left (r2 is at the end of r1)
+template <class _ForwardRange>
+_ForwardRange
+__rotate_forward(_ForwardRange __r1, _ForwardRange __r2)
+{
+    _ForwardRange __i = __r1.before(__r2);
+    while (true)
+    {
+        swap(__r2.front(), __i.front());
+        __r2.pop_front(); __i.pop_front();
+        if (__r2.empty())
+            break;
+        if (__i.empty())
+            { __r1 = __r1.after(__i);  __i = __r1.before(__r2); }
+    }
+    _ForwardRange __r = __r1.after_including(__i);
+    if (!__i.empty())
+    {
+        __r2 = __r1.after(__i);
+        while (true)
+        {
+            swap(__i.front(), __r2.front());
+            __i.pop_front(); __r2.pop_front();
+            if (__r2.empty())
+            {
+                if (__i.empty())
+                    break;
+                __r2 = __r1.after(__i);
+            }
+            else if (__i.empty())
+                { __r1 = __r1.after(__i); __i = __r1.before(__r2); }
+        }
+    }
+    return __r;
+}
+
+template<typename _Integral>
+inline _LIBCPP_INLINE_VISIBILITY
+_Integral
+__gcd(_Integral __x, _Integral __y)
+{
+    do
+    {
+        _Integral __t = __x % __y;
+        __x = __y;
+        __y = __t;
+    } while (__y);
+    return __x;
+}
+
+// r2 is at the end of r1 (r2 is a subrange of r1)
+template<typename _RandomAccessRange>
+_RandomAccessRange
+__rotate_gcd(_RandomAccessRange __r1, _RandomAccessRange __r2)
+{
+    typedef typename range_traits<_RandomAccessRange>::length_type length_type;
+    typedef typename range_traits<_RandomAccessRange>::value_type value_type;
+
+    const length_type __m2 = __r2.length();
+    const length_type __m1 = __r1.length() - __m2;
+    if (__m1 == __m2)
+    {
+        _VSTD::swap_ranges(__r2, __r1);
+        return __r2;
+    }
+    const length_type __g = _VSTD::__gcd(__m1, __m2);
+    // For ranges, it probably makes more sense to implement everything below with indices rather than with "range arithmetics."
+    for (length_type __p = __g; __p != 0;)
+    {
+        value_type __t(_VSTD::move(__r1[--__p]));
+        length_type __p1 = __p;
+        length_type __p2 = __p1 + __m1;
+        do
+        {
+            __r1[__p1] = _VSTD::move(__r1[__p2]);
+            __p1 = __p2;
+            const length_type __d = __r1.length() - __p2;
+            if (__m1 < __d)
+                __p2 += __m1;
+            else
+                __p2 = __m1 - __d;
+        } while (__p2 != __p);
+        __r1[__p1] = _VSTD::move(__t);
+    }
+    return __r1 + __m2;
+}
+
+template <class _ForwardRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+__rotate(_ForwardRange __r1, _ForwardRange __r2,
+         _VSTD::forward_range_tag)
+{
+    typedef typename _VSTD::range_traits<_ForwardRange>::value_type value_type;
+    if (_VSTD::is_trivially_move_assignable<value_type>::value)
+    {
+        if (_VSTD::next(__r1) == __r2)
+            return _VSTD::__rotate_left(__r1);
+    }
+    return _VSTD::__rotate_forward(__r1, __r2);
+}
+
+template <class _BidirectionalRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_BidirectionalRange
+__rotate(_BidirectionalRange __r1, _BidirectionalRange __r2,
+         _VSTD::bidirectional_range_tag)
+{
+    typedef typename _VSTD::range_traits<_BidirectionalRange>::value_type value_type;
+    if (_VSTD::is_trivially_move_assignable<value_type>::value)
+    {
+        if (_VSTD::next(__r1) == __r2)
+            return _VSTD::__rotate_left(__r1);
+        if (_VSTD::next(__r2).empty())
+            return _VSTD::__rotate_right(__r1);
+    }
+    return _VSTD::__rotate_forward(__r1, __r2);
+}
+
+template <class _RandomAccessRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_RandomAccessRange
+__rotate(_RandomAccessRange __r1, _RandomAccessRange __r2,
+         _VSTD::random_access_range_tag)
+{
+    typedef typename _VSTD::range_traits<_RandomAccessRange>::value_type value_type;
+    if (_VSTD::is_trivially_move_assignable<value_type>::value)
+    {
+        if (_VSTD::next(__r1) == __r2)
+            return _VSTD::__rotate_left(__r1);
+        if (_VSTD::next(__r2).empty())
+            return _VSTD::__rotate_right(__r1);
+        return _VSTD::__rotate_gcd(__r1, __r2);
+    }
+    return _VSTD::__rotate_forward(__r1, __r2);
+}
+
+template <class _ForwardRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+rotate(_ForwardRange __r1, _ForwardRange __r2)
+{
+    if (__r1 == __r2)
+        return __r1.after(__r1);
+    if (__r2.empty())
+        return __r1;
+    return _VSTD::__rotate(__r1, __r2,
+                           typename _VSTD::range_traits<_ForwardRange>::range_category());
+}
+
+// rotate_copy
+
+template <class _ForwardRange, class _OutputRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_OutputRange
+rotate_copy(_ForwardRange __r1, _ForwardRange __r2, _OutputRange __result)
+{
+    return _VSTD::copy(__r1.before(__r2), _VSTD::copy(__r2, __result));
+}
 
 // More to come
 

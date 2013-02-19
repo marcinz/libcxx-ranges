@@ -144,9 +144,15 @@ public:
     _LIBCPP_INLINE_VISIBILITY void pop_back() {--__last;}
     _LIBCPP_INLINE_VISIBILITY length_type length() const {return __last - __first;}
     _LIBCPP_INLINE_VISIBILITY iter_range operator+(length_type __n) const {return iter_range(__first+__n, __last);}
-    _LIBCPP_INLINE_VISIBILITY iter_range& operator+=(length_type __n) {__first += __n; return *this;}
+    _LIBCPP_INLINE_VISIBILITY iter_range& operator+=(length_type __n) {
+	if(__n > 0) __first += __n; else __last += __n;
+	return *this;
+    }
     _LIBCPP_INLINE_VISIBILITY iter_range operator-(length_type __n) const {return iter_range(__first, __last - __n);}
-    _LIBCPP_INLINE_VISIBILITY iter_range& operator-=(length_type __n) {__last -= __n; return *this;}
+    _LIBCPP_INLINE_VISIBILITY iter_range& operator-=(length_type __n) {
+	if(__n > 0) __last -= __n; else __first -= __n;
+	return *this;
+    }
     _LIBCPP_INLINE_VISIBILITY reference operator[](length_type __n) const {return __first[__n];}
     _LIBCPP_INLINE_VISIBILITY iter_range before(const iter_range& __r) const {return iter_range(__first, __r.__first);}
     _LIBCPP_INLINE_VISIBILITY iter_range before_including(const iter_range& __r) const {return iter_range(__first, __r.__last);}

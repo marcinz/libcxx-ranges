@@ -128,9 +128,9 @@ public:
     void pop_back() {rg_.pop_back();}
     bool empty() const {return rg_.empty();}
     before_type before(const bidirectional_range& r) const {return before_type(rg_.before(r.base()));}
-    bidirectional_range before_including(const bidirectional_range& r) const {return rg_.before_including(r.base());}
+    bidirectional_range before_including(const bidirectional_range& r) const {return bidirectional_range(rg_.before_including(r.base()));}
     after_type after(const bidirectional_range& r) const {return after_type(rg_.after(r.base()));}
-    bidirectional_range after_including(const bidirectional_range& r) const {return rg_.after_including(r.base());}
+    bidirectional_range after_including(const bidirectional_range& r) const {return bidirectional_range(rg_.after_including(r.base()));}
 
     friend bool operator==(const bidirectional_range& x, const bidirectional_range& y)
         {return x.rg_ == y.rg_;}
