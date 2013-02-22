@@ -85,6 +85,25 @@ public:
     bool operator()(const _T1& __x, const _T2& __y) {return !__p_(__x, __y);}
 };
 
+#ifdef _LIBCPP_DEBUG2
+
+template <class _Compare>
+struct __debug_less
+{
+    _Compare __comp_;
+    __debug_less(_Compare& __c) : __comp_(__c) {}
+    template <class _Tp, class _Up>
+    bool operator()(const _Tp& __x, const _Up& __y)
+    {
+        bool __r = __comp_(__x, __y);
+        if (__r)
+            _LIBCPP_ASSERT(!__comp_(__y, __x), "Comparator does not induce a strict weak ordering");
+        return __r;
+    }
+};
+
+#endif  // _LIBCPP_DEBUG2
+
 // Precondition:  __x != 0
 inline _LIBCPP_INLINE_VISIBILITY
 unsigned
