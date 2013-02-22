@@ -15,11 +15,11 @@
 //   bool
 //   next_permutation(Iter first, Iter last, Compare comp);
 
-#include <algorithm>
+#include <algorithm-range>
 #include <functional>
 #include <cassert>
 
-#include "test_iterators.h"
+#include "test_ranges.h"
 
 #include <cstdio>
 
@@ -31,7 +31,7 @@ int factorial(int x)
     return r;
 }
 
-template <class Iter>
+template <class Range>
 void
 test()
 {
@@ -45,14 +45,14 @@ test()
         bool x;
         do
         {
-            std::copy(ia, ia+e, prev);
-            x = std::next_permutation(Iter(ia), Iter(ia+e), C());
+            std::copy(std::make_iter_range(ia, ia+e), std::make_single_iter_range(prev));
+            x = std::next_permutation(Range(std::make_iter_range(ia, ia+e)), C());
             if (e > 1)
             {
                 if (x)
-                    assert(std::lexicographical_compare(prev, prev+e, ia, ia+e, C()));
+		    assert(std::lexicographical_compare(std::make_iter_range(prev, prev+e), std::make_iter_range(ia, ia+e), C()));
                 else
-                    assert(std::lexicographical_compare(ia, ia+e, prev, prev+e, C()));
+                    assert(std::lexicographical_compare(std::make_iter_range(ia, ia+e), std::make_iter_range(prev, prev+e), C()));
             }
             ++count;
         } while (x);
@@ -62,7 +62,6 @@ test()
 
 int main()
 {
-    test<bidirectional_iterator<int*> >();
-    test<random_access_iterator<int*> >();
-    test<int*>();
+    test<bidirectional_range<std::iter_range<int*> > >();
+    test<random_access_range<std::iter_range<int*> > >();
 }

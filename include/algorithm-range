@@ -1218,10 +1218,10 @@ __next_permutation(_BidirectionalRange __r, _Compare __comp)
             while (!__comp(__i.back(), __j.back()))
                 __j.pop_back();
             swap(__i.back(), __j.back());
-            _VSTD::reverse(__r.after(__ip1));
+            _VSTD::reverse(__r.after(prev(__ip1)));
             return true;
         }
-        if (__i.empty())
+        if (prev(__i).empty())
         {
             _VSTD::reverse(__r);
             return false;
@@ -1266,10 +1266,10 @@ __prev_permutation(_BidirectionalRange __r, _Compare __comp)
             while (!__comp(__j.back(), __i.back()))
                 __j.pop_back();
             swap(__i.back(), __j.back());
-            _VSTD::reverse(__r.after(__ip1));
+            _VSTD::reverse(__r.after(prev(__ip1)));
             return true;
         }
-        if (__i.empty())
+        if (prev(__i).empty())
         {
             _VSTD::reverse(__r);
             return false;
