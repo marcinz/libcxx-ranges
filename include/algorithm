@@ -11,8 +11,6 @@
 #ifndef _LIBCPP_ALGORITHM
 #define _LIBCPP_ALGORITHM
 
-extern int *begind, *endd;
-
 /*
     algorithm synopsis
 
@@ -3162,15 +3160,6 @@ is_sorted(_ForwardIterator __first, _ForwardIterator __last)
 
 // sort
 
-#include <stdio.h>
-
-void printd(char *s) {
-  printf("%s\n---------------------\n",s);
-    for(int *i = begind; i != endd; ++i)
-	printf("%d ", *i);
-    printf("\n-------------------\n");
-}
-
 // stable, 2-3 compares, 0-2 swaps
 
 template <class _Compare, class _ForwardIterator>
@@ -3411,9 +3400,8 @@ __insertion_sort_move(_BirdirectionalIterator __first1, _BirdirectionalIterator 
 
 template <class _Compare, class _RandomAccessIterator>
 void
-___sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp)
+__sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp)
 {
-  printf("entered ___sort\n");
     // _Compare is known to be a reference type
     typedef typename iterator_traits<_RandomAccessIterator>::difference_type difference_type;
     typedef typename iterator_traits<_RandomAccessIterator>::value_type value_type;
@@ -3442,13 +3430,11 @@ ___sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __
             _VSTD::__sort5<_Compare>(__first, __first+1, __first+2, __first+3, --__last, __comp);
             return;
         }
-	printd("first");
         if (__len <= __limit)
         {
             _VSTD::__insertion_sort_3<_Compare>(__first, __last, __comp);
             return;
         }
-	printd("second");
         // __len > 5
         _RandomAccessIterator __m = __first;
         _RandomAccessIterator __lm1 = __last;
@@ -3462,14 +3448,12 @@ ___sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __
             __m += __delta;
             __delta /= 2;
             __n_swaps = _VSTD::__sort5<_Compare>(__first, __first + __delta, __m, __m+__delta, __lm1, __comp);
-	    printd("third");
         }
         else
         {
             __delta = __len/2;
             __m += __delta;
             __n_swaps = _VSTD::__sort3<_Compare>(__first, __m, __lm1, __comp);
-	    printd("fourth");
         }
         }
         // *__m is median
@@ -3477,8 +3461,6 @@ ___sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __
         // (this inhibits tossing elements equivalent to __m around unnecessarily)
         _RandomAccessIterator __i = __first;
         _RandomAccessIterator __j = __lm1;
-	printf("lm1: %d\n", __lm1-begind);
-	printf("j: %d\n", __j-begind);
         // j points beyond range to be tested, *__m is known to be <= *__lm1
         // The search going up is known to be guarded but the search coming down isn't.
         // Prime the downward search with a guard.
@@ -3490,7 +3472,6 @@ ___sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __
             {
                 if (__i == --__j)
                 {
-		  printf("__i == --__j");
                     // *__first == *__m, *__m <= all other elements
                     // Parition instead into [__first, __i) == *__first and *__first < [__i, __last)
                     ++__i;  // __first + 1
@@ -3511,7 +3492,6 @@ ___sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __
                             ++__i;
                         }
                     }
-		    printd("fifth");
                     // [__first, __i) == *__first and *__first < [__j, __last) and __j == __last - 1
                     if (__i == __j)
                         return;
@@ -3533,18 +3513,14 @@ ___sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __
                     __first = __i;
                     goto __restart;
                 }
-	  printd("sixth-1");
                 if (__comp(*__j, *__m))
                 {
-		  printf("j: %d\n", __j-begind);
-		  printf("*_m = %d\n", *__m);
                     swap(*__i, *__j);
                     ++__n_swaps;
                     break;  // found guard for downward moving __j, now use unguarded partition
                 }
             }
         }
-	printd("sixth");
         // It is known that *__i < *__m
         ++__i;
         // j points beyond range to be tested, *__m is known to be <= *__lm1
@@ -3559,13 +3535,10 @@ ___sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __
                 while (__comp(*__i, *__m))
                     ++__i;
                 // It is now known that a guard exists for downward moving __j
-		printf("j: %d\n", __j-begind);				  
                 while (!__comp(*--__j, *__m))
                     ;
-		printf("j: %d\n", __j-begind);
                 if (__i > __j)
                     break;
-		printf("swap %d %d\n", __i-begind, __j-begind);
                 swap(*__i, *__j);
                 ++__n_swaps;
                 // It is known that __m != __j
@@ -3575,7 +3548,6 @@ ___sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __
                 ++__i;
             }
         }
-	printd("seventh");
         // [__first, __i) < *__m and *__m <= [__i, __last)
         if (__i != __m && __comp(*__m, *__i))
         {
@@ -3603,21 +3575,19 @@ ___sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __
                 }
             }
         }
-	printd("eight");
         // sort smaller range with recursive call and larger with tail recursion elimination
         if (__i - __first < __last - __i)
         {
-            _VSTD::___sort<_Compare>(__first, __i, __comp);
+            _VSTD::__sort<_Compare>(__first, __i, __comp);
             // _VSTD::__sort<_Compare>(__i+1, __last, __comp);
             __first = ++__i;
         }
         else
         {
-            _VSTD::___sort<_Compare>(__i+1, __last, __comp);
+            _VSTD::__sort<_Compare>(__i+1, __last, __comp);
             // _VSTD::__sort<_Compare>(__first, __i, __comp);
             __last = __i;
         }
-	printd("ninth");
     }
 }
 
@@ -3632,9 +3602,8 @@ sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __com
     __debug_less<_Compare> __c(__comp);
     __sort<_Comp_ref>(__first, __last, __c);
 #else  // _LIBCPP_DEBUG2
-    printf("entered sort\n");
     typedef typename add_lvalue_reference<_Compare>::type _Comp_ref;
-    ___sort<_Comp_ref>(__first, __last, __comp);
+    __sort<_Comp_ref>(__first, __last, __comp);
     printd("tenth");
 #endif  // _LIBCPP_DEBUG2
 }
@@ -3676,21 +3645,21 @@ sort(__wrap_iter<_Tp*> __first, __wrap_iter<_Tp*> __last, _Compare __comp)
 #pragma warning( push )
 #pragma warning( disable: 4231)
 #endif // _MSC_VER
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<char>&, char*>(char*, char*, __less<char>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<wchar_t>&, wchar_t*>(wchar_t*, wchar_t*, __less<wchar_t>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<signed char>&, signed char*>(signed char*, signed char*, __less<signed char>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<unsigned char>&, unsigned char*>(unsigned char*, unsigned char*, __less<unsigned char>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<short>&, short*>(short*, short*, __less<short>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<unsigned short>&, unsigned short*>(unsigned short*, unsigned short*, __less<unsigned short>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<int>&, int*>(int*, int*, __less<int>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<unsigned>&, unsigned*>(unsigned*, unsigned*, __less<unsigned>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<long>&, long*>(long*, long*, __less<long>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<unsigned long>&, unsigned long*>(unsigned long*, unsigned long*, __less<unsigned long>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<long long>&, long long*>(long long*, long long*, __less<long long>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<unsigned long long>&, unsigned long long*>(unsigned long long*, unsigned long long*, __less<unsigned long long>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<float>&, float*>(float*, float*, __less<float>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<double>&, double*>(double*, double*, __less<double>&))
-// _LIBCPP_EXTERN_TEMPLATE(void __sort<__less<long double>&, long double*>(long double*, long double*, __less<long double>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<char>&, char*>(char*, char*, __less<char>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<wchar_t>&, wchar_t*>(wchar_t*, wchar_t*, __less<wchar_t>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<signed char>&, signed char*>(signed char*, signed char*, __less<signed char>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<unsigned char>&, unsigned char*>(unsigned char*, unsigned char*, __less<unsigned char>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<short>&, short*>(short*, short*, __less<short>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<unsigned short>&, unsigned short*>(unsigned short*, unsigned short*, __less<unsigned short>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<int>&, int*>(int*, int*, __less<int>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<unsigned>&, unsigned*>(unsigned*, unsigned*, __less<unsigned>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<long>&, long*>(long*, long*, __less<long>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<unsigned long>&, unsigned long*>(unsigned long*, unsigned long*, __less<unsigned long>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<long long>&, long long*>(long long*, long long*, __less<long long>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<unsigned long long>&, unsigned long long*>(unsigned long long*, unsigned long long*, __less<unsigned long long>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<float>&, float*>(float*, float*, __less<float>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<double>&, double*>(double*, double*, __less<double>&))
+_LIBCPP_EXTERN_TEMPLATE(void __sort<__less<long double>&, long double*>(long double*, long double*, __less<long double>&))
 
 _LIBCPP_EXTERN_TEMPLATE(bool __insertion_sort_incomplete<__less<char>&, char*>(char*, char*, __less<char>&))
 _LIBCPP_EXTERN_TEMPLATE(bool __insertion_sort_incomplete<__less<wchar_t>&, wchar_t*>(wchar_t*, wchar_t*, __less<wchar_t>&))

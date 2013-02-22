@@ -132,26 +132,24 @@ test_larger_sorts(unsigned N)
 
 int main()
 {
-    // // test null range
-    // int d = 0;
-    // std::sort(&d, &d);
-    // // exhaustively test all possibilities up to length 8
-    // test_sort_<1>();
-    // test_sort_<2>();
-    // test_sort_<3>();
-    // test_sort_<4>();
-    // test_sort_<5>();
-    // test_sort_<6>();
-    // test_sort_<7>();
-    // test_sort_<8>();
+    // test null range
+    int d = 0;
+    std::sort(&d, &d);
+    // exhaustively test all possibilities up to length 8
+    test_sort_<1>();
+    test_sort_<2>();
+    test_sort_<3>();
+    test_sort_<4>();
+    test_sort_<5>();
+    test_sort_<6>();
+    test_sort_<7>();
+    test_sort_<8>();
 
-  test_larger_sorts(256, 3);
-
-    // test_larger_sorts(256);
-    // test_larger_sorts(257);
-    // test_larger_sorts(499);
-    // test_larger_sorts(500);
-    // test_larger_sorts(997);
-    // test_larger_sorts(1000);
-    // test_larger_sorts(1009);
+    test_larger_sorts(256);
+    test_larger_sorts(257);
+    test_larger_sorts(499);
+    test_larger_sorts(500);
+    test_larger_sorts(997);
+    test_larger_sorts(1000);
+    test_larger_sorts(1009);
 }

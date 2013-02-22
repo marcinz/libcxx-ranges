@@ -3,8 +3,6 @@
 #ifndef _LIBCPP_ALGORITHM_RANGE
 #define _LIBCPP_ALGORITHM_RANGE
 
-extern int *begind, *endd;
-
 #include <__config>
 #include <initializer_list>
 #include <type_traits>
@@ -2114,15 +2112,6 @@ is_sorted(_ForwardRange __r)
 
 // sort
 
-#include <stdio.h>
-
-void printd(char *s) {
-    printf("%s\n---------------------\n",s);
-    for(int *i = begind; i != endd; ++i)
-	printf("%d ", *i);
-    printf("\n-------------------\n");
-}
-
 // stable, 2-3 compares, 0-2 swaps
 
 template <class _Compare, class _ForwardRange>
@@ -2369,7 +2358,6 @@ template <class _Compare, class _RandomAccessRange>
 void
 __sort(_RandomAccessRange __r, _Compare __comp)
 {
-    printf("entered __sort\n");
     // _Compare is known to be a reference type
     typedef typename range_traits<_RandomAccessRange>::length_type length_type;
     typedef typename range_traits<_RandomAccessRange>::value_type value_type;
@@ -2398,13 +2386,11 @@ __sort(_RandomAccessRange __r, _Compare __comp)
             _VSTD::__sort5<_Compare>(__r, __r+1, __r+2, __r+3, __r+4, __comp);
             return;
         }
-	printd("first");
         if (__len <= __limit)
         {
             _VSTD::__insertion_sort_3<_Compare>(__r, __comp);
             return;
         }
-	printd("second");
         // __len > 5
         _RandomAccessRange __m = __r;
         _RandomAccessRange __lm1 = __r.after(__r-1);
@@ -2417,22 +2403,18 @@ __sort(_RandomAccessRange __r, _Compare __comp)
             __m += __delta;
             __delta /= 2;
             __n_swaps = _VSTD::__sort5<_Compare>(__r, __r + __delta, __m, __m+__delta, __lm1, __comp);
-	    printd("third");
         }
         else
         {
             __delta = __len/2;
             __m += __delta;
             __n_swaps = _VSTD::__sort3<_Compare>(__r, __m, __lm1, __comp);
-	    printd("fourth");
         }
         }
         // *__m is median
         // partition [__first, __m) < *__m and *__m <= [__m, __last)
         // (this inhibits tossing elements equivalent to __m around unnecessarily)
         _RandomAccessRange __ij = __r.before(__lm1); // This replaces two iterators in the iterator version
-	printf("lm1: %d %d\n", __lm1.begin()-begind, __lm1.end()-begind);
-	printf("j: %d\n", __ij.end()-begind);
         // j points beyond range to be tested, *__m is known to be <= *__lm1
         // The search going up is known to be guarded but the search coming down isn't.
         // Prime the downward search with a guard.
@@ -2444,7 +2426,6 @@ __sort(_RandomAccessRange __r, _Compare __comp)
             {
                 if (prev(__ij).empty())
                 {
-		    printf("__ij.empty()\n");
                     // *__first == *__m, *__m <= all other elements
                     // Parition instead into [__first, __i) == *__first and *__first < [__i, __last)
                     __ij = __r.after_including(__ij);
@@ -2465,7 +2446,6 @@ __sort(_RandomAccessRange __r, _Compare __comp)
                             __ij.pop_front();
                         }
                     }
-		    printd("fifth");
                     // [__first, __i) == *__first and *__first < [__j, __last) and __j == __last - 1
                     if (__ij.empty())
                         return;
@@ -2487,11 +2467,8 @@ __sort(_RandomAccessRange __r, _Compare __comp)
                     __r = __r.after(__ij);
                     goto __restart;
                 }
-			    printd("sixth-1");
                 if (__comp(__ij.back(), __m.front()))
                 {
-		    printf("j: %d\n", __ij.end()-begind);
-		    printf("*_m = %d\n", __m.front());
                     swap(__ij.front(), __ij.back());
                     ++__n_swaps;
                     break;  // found guard for downward moving __j, now use unguarded partition
@@ -2499,7 +2476,6 @@ __sort(_RandomAccessRange __r, _Compare __comp)
 	    __ij.pop_back();
             }
         }
-	printd("sixth");
         // It is known that *__i < *__m
         __ij.pop_front();
         // j points beyond range to be tested, *__m is known to be <= *__lm1
@@ -2514,13 +2490,10 @@ __sort(_RandomAccessRange __r, _Compare __comp)
                 while (__comp(__ij.front(), __m.front()))
                     __ij.pop_front();
                 // It is now known that a guard exists for downward moving __j
-		printf("j: %d\n", __ij.end()-begind);
                 for (;!__ij.empty() && !__comp(__ij.back(), __m.front()); __ij.pop_back())
                     ;
-		printf("j: %d\n", __ij.end()-begind);
                 if (__ij.empty())
                     break;
-		printf("swap %d %d\n", __ij.begin()-begind, __ij.end()-begind);
                 swap(__ij.front(), __ij.back());
                 ++__n_swaps;
                 // It is known that __m != __j
@@ -2530,7 +2503,6 @@ __sort(_RandomAccessRange __r, _Compare __comp)
                 __ij.pop_front();
             }
         }
-	printd("seventh");
         // [__first, __i) < *__m and *__m <= [__i, __last)
         if (!__ij.front_equal(__m) && __comp(__m.front(), __ij.front()))
         {
@@ -2558,7 +2530,6 @@ __sort(_RandomAccessRange __r, _Compare __comp)
                 }
             }
         }
-	printd("eight");
         // sort smaller range with recursive call and larger with tail recursion elimination
         if (__r.before(__ij).length() < __r.after_including(__ij).length())
         {
@@ -2572,7 +2543,6 @@ __sort(_RandomAccessRange __r, _Compare __comp)
             // _VSTD::__sort<_Compare>(__first, __i, __comp);
             __r = __r.before(__ij);
         }
-	printd("ninth");
     }
 }
 
@@ -2582,10 +2552,8 @@ inline _LIBCPP_INLINE_VISIBILITY
 void
 sort(_RandomAccessRange __r, _Compare __comp)
 {
-    printf("entered sort\n");
     typedef typename add_lvalue_reference<_Compare>::type _Comp_ref;
     __sort<_Comp_ref>(__r, __comp);
-    printd("tenth");
 }
 
 template <class _RandomAccessRange>

@@ -71,8 +71,6 @@ test_sort_()
     }
 }
 
-int *begind, *endd;
-
 void
 test_larger_sorts(unsigned N, unsigned M)
 {
@@ -81,8 +79,6 @@ test_larger_sorts(unsigned N, unsigned M)
     // create array length N filled with M different numbers
     int* array = new int[N];
     
-    begind = array; endd = array+N;
-
     int x = 0;
     for (int i = 0; i < N; ++i)
     {
