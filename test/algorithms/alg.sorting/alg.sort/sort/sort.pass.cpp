@@ -71,6 +71,8 @@ test_sort_()
     }
 }
 
+int *begind, *endd;
+
 void
 test_larger_sorts(unsigned N, unsigned M)
 {
@@ -78,6 +80,9 @@ test_larger_sorts(unsigned N, unsigned M)
     assert(M != 0);
     // create array length N filled with M different numbers
     int* array = new int[N];
+
+    begind = array; endd = array+N;
+
     int x = 0;
     for (int i = 0; i < N; ++i)
     {
@@ -99,16 +104,16 @@ test_larger_sorts(unsigned N, unsigned M)
     std::reverse(array, array+N);
     std::sort(array, array+N);
     assert(std::is_sorted(array, array+N));
-    // test swap ranges 2 pattern
-    std::swap_ranges(array, array+N/2, array+N/2);
-    std::sort(array, array+N);
-    assert(std::is_sorted(array, array+N));
-    // test reverse swap ranges 2 pattern
-    std::reverse(array, array+N);
-    std::swap_ranges(array, array+N/2, array+N/2);
-    std::sort(array, array+N);
-    assert(std::is_sorted(array, array+N));
-    delete [] array;
+    // // test swap ranges 2 pattern
+    // std::swap_ranges(array, array+N/2, array+N/2);
+    // std::sort(array, array+N);
+    // assert(std::is_sorted(array, array+N));
+    // // test reverse swap ranges 2 pattern
+    // std::reverse(array, array+N);
+    // std::swap_ranges(array, array+N/2, array+N/2);
+    // std::sort(array, array+N);
+    // assert(std::is_sorted(array, array+N));
+    // delete [] array;
 }
 
 void
@@ -127,24 +132,26 @@ test_larger_sorts(unsigned N)
 
 int main()
 {
-    // test null range
-    int d = 0;
-    std::sort(&d, &d);
-    // exhaustively test all possibilities up to length 8
-    test_sort_<1>();
-    test_sort_<2>();
-    test_sort_<3>();
-    test_sort_<4>();
-    test_sort_<5>();
-    test_sort_<6>();
-    test_sort_<7>();
-    test_sort_<8>();
+    // // test null range
+    // int d = 0;
+    // std::sort(&d, &d);
+    // // exhaustively test all possibilities up to length 8
+    // test_sort_<1>();
+    // test_sort_<2>();
+    // test_sort_<3>();
+    // test_sort_<4>();
+    // test_sort_<5>();
+    // test_sort_<6>();
+    // test_sort_<7>();
+    // test_sort_<8>();
 
-    test_larger_sorts(256);
-    test_larger_sorts(257);
-    test_larger_sorts(499);
-    test_larger_sorts(500);
-    test_larger_sorts(997);
-    test_larger_sorts(1000);
-    test_larger_sorts(1009);
+  test_larger_sorts(256, 3);
+
+    // test_larger_sorts(256);
+    // test_larger_sorts(257);
+    // test_larger_sorts(499);
+    // test_larger_sorts(500);
+    // test_larger_sorts(997);
+    // test_larger_sorts(1000);
+    // test_larger_sorts(1009);
 }

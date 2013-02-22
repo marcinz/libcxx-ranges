@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <iosfwd>
 #include <iterator>
+#include <cassert>
 #if __APPLE__
 #include <Availability.h>
 #endif
@@ -160,6 +161,13 @@ public:
     _LIBCPP_INLINE_VISIBILITY iter_range after_including(const iter_range& __r) const {return iter_range(__r.__first, __last);}
 
     _LIBCPP_INLINE_VISIBILITY bool operator==(const iter_range& __r) const {return __r.__first == __first && __r.__last == __last;}
+    _LIBCPP_INLINE_VISIBILITY bool operator!=(const iter_range& __r) const {return !(__r == *this);}
+    _LIBCPP_INLINE_VISIBILITY bool front_equal(const iter_range& __r) const {return __r.__first == __first;}
+    _LIBCPP_INLINE_VISIBILITY bool back_equal(const iter_range& __r) const {return __r.__last == __last;}
+    _LIBCPP_INLINE_VISIBILITY bool front_before(const iter_range& __r) const {return __first < __r.__first;}
+    _LIBCPP_INLINE_VISIBILITY bool back_before(const iter_range& __r) const {return __last < __r.__last;}
+    _LIBCPP_INLINE_VISIBILITY bool front_after(const iter_range& __r) const {return __first > __r.__first;}
+    _LIBCPP_INLINE_VISIBILITY bool back_after(const iter_range& __r) const {return __last == __r.__last;}
 };
 
 template <class _Iter>
@@ -192,12 +200,12 @@ public:
     _LIBCPP_INLINE_VISIBILITY _Iter base() const {return __iter;}
     _LIBCPP_INLINE_VISIBILITY reference front() const {return *__iter;}
     _LIBCPP_INLINE_VISIBILITY void pop_front() {return ++__iter;}
-    _LIBCPP_INLINE_VISIBILITY reference back() const {return *__iter;}
-    _LIBCPP_INLINE_VISIBILITY void pop_back() {return --__iter;}
+    _LIBCPP_INLINE_VISIBILITY reference back() const {assert(false); return *__iter;}
+    _LIBCPP_INLINE_VISIBILITY void pop_back() {assert(false);}
     _LIBCPP_INLINE_VISIBILITY single_iter_range operator+(length_type __n) const {return single_iter_range(__iter+__n);}
     _LIBCPP_INLINE_VISIBILITY single_iter_range& operator+=(length_type __n) {__iter += __n; return *this;}
-    _LIBCPP_INLINE_VISIBILITY single_iter_range operator-(length_type __n) const {return single_iter_range(__iter - __n);}
-    _LIBCPP_INLINE_VISIBILITY single_iter_range& operator-=(length_type __n) {__iter -= __n; return *this;}
+    _LIBCPP_INLINE_VISIBILITY single_iter_range operator-(length_type __n) const {assert(false); return *this;}
+    _LIBCPP_INLINE_VISIBILITY single_iter_range& operator-=(length_type __n) {assert(false); return *this;}
     _LIBCPP_INLINE_VISIBILITY reference operator[](length_type __n) const {return __iter[__n];}
     _LIBCPP_INLINE_VISIBILITY iter_range<_Iter> before(const single_iter_range& __r) const {return iter_range<_Iter>(__iter, __r.__iter);}
     _LIBCPP_INLINE_VISIBILITY single_iter_range before_including(const single_iter_range& __r) const {return single_iter_range(__iter);}
@@ -205,6 +213,13 @@ public:
     _LIBCPP_INLINE_VISIBILITY single_iter_range after_including(const single_iter_range& __r) const {return single_iter_range(__r.__iter);}
 
     _LIBCPP_INLINE_VISIBILITY bool operator==(const single_iter_range& __r) const {return __r.__iter == __iter;}
+    _LIBCPP_INLINE_VISIBILITY bool operator!=(const single_iter_range& __r) const {return !(__r == *this);}
+    _LIBCPP_INLINE_VISIBILITY bool front_equal(const single_iter_range& __r) const {return __r.__iter == __iter;}
+    _LIBCPP_INLINE_VISIBILITY bool back_equal(const single_iter_range& __r) const {assert(false); return false;}
+    _LIBCPP_INLINE_VISIBILITY bool front_before(const single_iter_range& __r) const {return __iter < __r.__iter;}
+    _LIBCPP_INLINE_VISIBILITY bool back_before(const single_iter_range& __r) const {assert(false); return false;}
+    _LIBCPP_INLINE_VISIBILITY bool front_after(const single_iter_range& __r) const {return __iter > __r.__iter;}
+    _LIBCPP_INLINE_VISIBILITY bool back_after(const single_iter_range& __r) const {assert(false); return false;}
 };
 
 template <class _Iter>
@@ -250,6 +265,13 @@ public:
     _LIBCPP_INLINE_VISIBILITY single_iter_backward_range after_including(const single_iter_backward_range& __r) const {return single_iter_backward_range(__iter);}
 
     _LIBCPP_INLINE_VISIBILITY bool operator==(const single_iter_backward_range& __r) const {return __r.__iter == __iter;}
+    _LIBCPP_INLINE_VISIBILITY bool operator!=(const single_iter_backward_range& __r) const {return !(__r == *this);}
+    _LIBCPP_INLINE_VISIBILITY bool front_equal(const single_iter_backward_range& __r) const {assert(false); return false;}
+    _LIBCPP_INLINE_VISIBILITY bool back_equal(const single_iter_backward_range& __r) const {assert(false); return  __r.__iter == __iter;}
+    _LIBCPP_INLINE_VISIBILITY bool front_before(const single_iter_backward_range& __r) const {assert(false); return false;}
+    _LIBCPP_INLINE_VISIBILITY bool back_before(const single_iter_backward_range& __r) const {return __iter < __r.__iter;;}
+    _LIBCPP_INLINE_VISIBILITY bool front_after(const single_iter_backward_range& __r) const {assert(false); return false;}
+    _LIBCPP_INLINE_VISIBILITY bool back_after(const single_iter_backward_range& __r) const {return __iter > __r.__iter;}
 };
 
 template <class _Iter>

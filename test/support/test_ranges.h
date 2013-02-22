@@ -5,6 +5,8 @@
 
 #include <range>
 
+// All of the following range "prototypes" could be augmented by unbounded versions, which would prohibit certain operations not valid for an unbound range.
+
 template <class Rg>
 class output_range
 {
@@ -61,7 +63,9 @@ public:
     friend bool operator==(const input_range& x, const input_range& y)
         {return x.rg_ == y.rg_;}
     friend bool operator!=(const input_range& x, const input_range& y)
-        {return !(x == y);}
+        {return !(x.rg_ == y.rg_);}
+    friend bool front_equal(const input_range& x, const input_range& y) {return x.rg_.front_equal(y.rg_);}
+    friend bool back_equal(const input_range& x, const input_range& y) {return x.rg_.back_equal(y.rg_);}
 };
 
 template <class Rg>
@@ -98,6 +102,8 @@ public:
         {return x.rg_ == y.rg_;}
     friend bool operator!=(const forward_range& x, const forward_range& y)
         {return !(x == y);}
+    friend bool front_equal(const forward_range& x, const forward_range& y) {return x.rg_.front_equal(y.rg_);}
+    friend bool back_equal(const forward_range& x, const forward_range& y) {return x.rg_.back_equal(y.rg_);}
 };
 
 template <class Rg>
@@ -136,6 +142,8 @@ public:
         {return x.rg_ == y.rg_;}
     friend bool operator!=(const bidirectional_range& x, const bidirectional_range& y)
         {return !(x == y);}
+    friend bool front_equal(const bidirectional_range& x, const bidirectional_range& y) {return x.rg_.front_equal(y.rg_);}
+    friend bool back_equal(const bidirectional_range& x, const bidirectional_range& y) {return x.rg_.back_equal(y.rg_);}
 };
 
 template <class Rg>
@@ -182,6 +190,10 @@ public:
         {return x.rg_ == y.rg_;}
     friend bool operator!=(const random_access_range& x, const random_access_range& y)
         {return !(x == y);}
+    friend bool front_before(const random_access_range& x, const random_access_range& y) {return x.rg_.front_before(y.rg_);}
+    friend bool back_before(const random_access_range& x, const random_access_range& y) {return x.rg_.back_before(y.rg_);}
+    friend bool front_after(const random_access_range& x, const random_access_range& y) {return x.rg_.front_after(y.rg_);}
+    friend bool back_after(const random_access_range& x, const random_access_range& y) {return x.rg_.back_after(y.rg_);}
 };
 
 template <class Range>

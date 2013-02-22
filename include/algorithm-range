@@ -3,6 +3,8 @@
 #ifndef _LIBCPP_ALGORITHM_RANGE
 #define _LIBCPP_ALGORITHM_RANGE
 
+extern int *begind, *endd;
+
 #include <__config>
 #include <initializer_list>
 #include <type_traits>
@@ -14,134 +16,13 @@
 #include <cstddef>
 
 #include <__undef_min_max>
+#include <__algorithm-common>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
 #endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
-
-template <class _T1, class _T2 = _T1>
-struct __equal_to
-{
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x == __y;}
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T2& __y) const {return __x == __y;}
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T2& __x, const _T1& __y) const {return __x == __y;}
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T2& __x, const _T2& __y) const {return __x == __y;}
-};
-
-template <class _T1>
-struct __equal_to<_T1, _T1>
-{
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x == __y;}
-};
-
-template <class _T1>
-struct __equal_to<const _T1, _T1>
-{
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x == __y;}
-};
-
-template <class _T1>
-struct __equal_to<_T1, const _T1>
-{
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x == __y;}
-};
-
-template <class _T1, class _T2 = _T1>
-struct __less
-{
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x < __y;}
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T2& __y) const {return __x < __y;}
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T2& __x, const _T1& __y) const {return __x < __y;}
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T2& __x, const _T2& __y) const {return __x < __y;}
-};
-
-template <class _T1>
-struct __less<_T1, _T1>
-{
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x < __y;}
-};
-
-template <class _T1>
-struct __less<const _T1, _T1>
-{
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x < __y;}
-};
-
-template <class _T1>
-struct __less<_T1, const _T1>
-{
-    _LIBCPP_INLINE_VISIBILITY bool operator()(const _T1& __x, const _T1& __y) const {return __x < __y;}
-};
-
-template <class _Predicate>
-class __negate
-{
-private:
-    _Predicate __p_;
-public:
-    _LIBCPP_INLINE_VISIBILITY __negate() {}
-
-    _LIBCPP_INLINE_VISIBILITY
-    explicit __negate(_Predicate __p) : __p_(__p) {}
-
-    template <class _T1>
-    _LIBCPP_INLINE_VISIBILITY
-    bool operator()(const _T1& __x) {return !__p_(__x);}
-
-    template <class _T1, class _T2>
-    _LIBCPP_INLINE_VISIBILITY
-    bool operator()(const _T1& __x, const _T2& __y) {return !__p_(__x, __y);}
-};
-
-// Precondition:  __x != 0
-inline _LIBCPP_INLINE_VISIBILITY
-unsigned
-__ctz(unsigned __x)
-{
-    return static_cast<unsigned>(__builtin_ctz(__x));
-}
-
-inline _LIBCPP_INLINE_VISIBILITY
-unsigned long
-__ctz(unsigned long __x)
-{
-    return static_cast<unsigned long>(__builtin_ctzl(__x));
-}
-
-inline _LIBCPP_INLINE_VISIBILITY
-unsigned long long
-__ctz(unsigned long long __x)
-{
-    return static_cast<unsigned long long>(__builtin_ctzll(__x));
-}
-
-// Precondition:  __x != 0
-inline _LIBCPP_INLINE_VISIBILITY
-unsigned
-__clz(unsigned __x)
-{
-    return static_cast<unsigned>(__builtin_clz(__x));
-}
-
-inline _LIBCPP_INLINE_VISIBILITY
-unsigned long
-__clz(unsigned long __x)
-{
-    return static_cast<unsigned long>(__builtin_clzl (__x));
-}
-
-inline _LIBCPP_INLINE_VISIBILITY
-unsigned long long
-__clz(unsigned long long __x)
-{
-    return static_cast<unsigned long long>(__builtin_clzll(__x));
-}
-
-inline _LIBCPP_INLINE_VISIBILITY int __pop_count(unsigned           __x) {return __builtin_popcount  (__x);}
-inline _LIBCPP_INLINE_VISIBILITY int __pop_count(unsigned      long __x) {return __builtin_popcountl (__x);}
-inline _LIBCPP_INLINE_VISIBILITY int __pop_count(unsigned long long __x) {return __builtin_popcountll(__x);}
 
 template <class _InputRange, class _Predicate>
 inline _LIBCPP_INLINE_VISIBILITY
@@ -1056,10 +937,12 @@ generate(_ForwardRange __r, _Generator __gen)
 
 // generate_n
 
+// Since the interface is the same as the one for the iterator version, we need to change the name of this algorithm.
+
 template <class _OutputRange, class _Size, class _Generator>
 inline _LIBCPP_INLINE_VISIBILITY
 _OutputRange
-generate_n(_OutputRange __r, _Size __n, _Generator __gen)
+generate_n_range(_OutputRange __r, _Size __n, _Generator __gen)
 {
     for (; __n > 0; __r.pop_front(), --__n)
         __r.front() = __gen();
@@ -1178,10 +1061,10 @@ unique(_ForwardRange __r, _BinaryPredicate __pred)
 template <class _ForwardRange>
 inline _LIBCPP_INLINE_VISIBILITY
 _ForwardRange
-unique(_ForwardRange __first, _ForwardRange __last)
+unique(_ForwardRange __r)
 {
     typedef typename range_traits<_ForwardRange>::value_type __v;
-    return _VSTD::unique(__first, __last, __equal_to<__v>());
+    return _VSTD::unique(__r, __equal_to<__v>());
 }
 
 // unique_copy
@@ -1316,6 +1199,102 @@ reverse_copy(_BidirectionalRange __r, _OutputRange __result)
     for (; !__r.empty(); __r.pop_back(), __result.pop_front())
         __result.front() = __r.back();
     return __result;
+}
+
+// next_permutation
+
+template <class _Compare, class _BidirectionalRange>
+bool
+__next_permutation(_BidirectionalRange __r, _Compare __comp)
+{
+    _BidirectionalRange __i = __r;
+    if (__r.empty() || prev(__r).empty())
+        return false;
+    while (true)
+    {
+        _BidirectionalRange __ip1 = __i;
+	__i.pop_back();
+        if (__comp(__i.back(), __ip1.back()))
+        {
+            _BidirectionalRange __j = __r;
+            while (!__comp(__i.back(), __j.back()))
+                __j.pop_back();
+            swap(__i.back(), __j.back());
+            _VSTD::reverse(__r.after(__ip1));
+            return true;
+        }
+        if (__i.empty())
+        {
+            _VSTD::reverse(__r);
+            return false;
+        }
+    }
+}
+
+template <class _BidirectionalRange, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+next_permutation(_BidirectionalRange __r, _Compare __comp)
+{
+    typedef typename add_lvalue_reference<_Compare>::type _Comp_ref;
+    return __next_permutation<_Comp_ref>(__r, __comp);
+}
+
+template <class _BidirectionalRange>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+next_permutation(_BidirectionalRange __r)
+{
+    return _VSTD::next_permutation(__r,
+                                  __less<typename range_traits<_BidirectionalRange>::value_type>());
+}
+
+// prev_permutation
+
+template <class _Compare, class _BidirectionalRange>
+bool
+__prev_permutation(_BidirectionalRange __r, _Compare __comp)
+{
+    _BidirectionalRange __i = __r;
+    if (__r.empty() || prev(__r).empty())
+        return false;
+    while (true)
+    {
+        _BidirectionalRange __ip1 = __i;
+	__i.pop_back();
+        if (__comp(__ip1.back(), __i.back()))
+        {
+            _BidirectionalRange __j = __r;
+            while (!__comp(__j.back(), __i.back()))
+                __j.pop_back();
+            swap(__i.back(), __j.back());
+            _VSTD::reverse(__r.after(__ip1));
+            return true;
+        }
+        if (__i.empty())
+        {
+            _VSTD::reverse(__r);
+            return false;
+        }
+    }
+}
+
+template <class _BidirectionalRange, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+prev_permutation(_BidirectionalRange __r, _Compare __comp)
+{
+    typedef typename add_lvalue_reference<_Compare>::type _Comp_ref;
+    return __prev_permutation<_Comp_ref>(__r, __comp);
+}
+
+template <class _BidirectionalRange>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+prev_permutation(_BidirectionalRange __r)
+{
+    return _VSTD::prev_permutation(__r,
+                                  __less<typename range_traits<_BidirectionalRange>::value_type>());
 }
 
 // rotate
@@ -1500,6 +1479,1202 @@ _OutputRange
 rotate_copy(_ForwardRange __r1, _ForwardRange __r2, _OutputRange __result)
 {
     return _VSTD::copy(__r1.before(__r2), _VSTD::copy(__r2, __result));
+}
+
+// min_element
+
+template <class _ForwardRange, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+min_element(_ForwardRange __r, _Compare __comp)
+{
+    if (!__r.empty())
+    {
+        _ForwardRange __i = __r;
+        for (; !__i.empty(); __i.pop_front())
+            if (__comp(__i.front(), __r.front()))
+                __r = __i;
+    }
+    return __r;
+}
+
+template <class _ForwardRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+min_element(_ForwardRange __r)
+{
+    return _VSTD::min_element(__r,
+              __less<typename range_traits<_ForwardRange>::value_type>());
+}
+
+// min
+
+template <class _Tp, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+const _Tp&
+min(const _Tp& __a, const _Tp& __b, _Compare __comp)
+{
+    return __comp(__b, __a) ? __b : __a;
+}
+
+template <class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+const _Tp&
+min(const _Tp& __a, const _Tp& __b)
+{
+    return _VSTD::min(__a, __b, __less<_Tp>());
+}
+
+#ifndef _LIBCPP_HAS_NO_GENERALIZED_INITIALIZERS
+
+template<class _Tp, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+_Tp
+min(initializer_list<_Tp> __t, _Compare __comp)
+{
+    return _VSTD::min_element(_VSTD::make_iter_range(__t.begin(), __t.end()), __comp).front();
+}
+
+template<class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+_Tp
+min(initializer_list<_Tp> __t)
+{
+    return _VSTD::min_element(_VSTD::make_iter_range(__t.begin(), __t.end())).front();
+}
+
+#endif  // _LIBCPP_HAS_NO_GENERALIZED_INITIALIZERS
+
+// max_element
+
+template <class _ForwardRange, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+max_element(_ForwardRange __r, _Compare __comp)
+{
+    if (!__r.empty())
+    {
+        _ForwardRange __i = __r;
+        for (; !__i.empty(); __i.pop_front())
+            if (__comp(__r.front(), __i.front()))
+                __r = __i;
+    }
+    return __r;
+}
+
+template <class _ForwardRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+max_element(_ForwardRange __r)
+{
+    return _VSTD::max_element(__r,
+              __less<typename range_traits<_ForwardRange>::value_type>());
+}
+
+// max
+
+template <class _Tp, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+const _Tp&
+max(const _Tp& __a, const _Tp& __b, _Compare __comp)
+{
+    return __comp(__a, __b) ? __b : __a;
+}
+
+template <class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+const _Tp&
+max(const _Tp& __a, const _Tp& __b)
+{
+    return _VSTD::max(__a, __b, __less<_Tp>());
+}
+
+#ifndef _LIBCPP_HAS_NO_GENERALIZED_INITIALIZERS
+
+template<class _Tp, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+_Tp
+max(initializer_list<_Tp> __t, _Compare __comp)
+{
+    return _VSTD::max_element(_VSTD::make_iter_range(__t.begin(), __t.end()), __comp).front();
+}
+
+template<class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+_Tp
+max(initializer_list<_Tp> __t)
+{
+    return _VSTD::max_element(_VSTD::make_iter_range(__t.begin(), __t.end())).front();
+}
+
+#endif  // _LIBCPP_HAS_NO_GENERALIZED_INITIALIZERS
+
+// minmax_element
+
+template <class _ForwardRange, class _Compare>
+std::pair<_ForwardRange, _ForwardRange>
+minmax_element(_ForwardRange __r, _Compare __comp)
+{
+  std::pair<_ForwardRange, _ForwardRange> __result(__r, __r);
+  if (!__r.empty())
+  {
+      __r.pop_front();
+      if (!__r.empty())
+      {
+          if (__comp(__r.front(), __result.first.front()))
+              __result.first = __r;
+          else
+              __result.second = __r;
+          for (__r.pop_front(); !__r.empty(); __r.pop_front())
+          {
+              _ForwardRange __i = __r;
+	      __r.pop_front();
+              if (__r.empty())
+              {
+                  if (__comp(__i.front(), __result.first.front()))
+                      __result.first = __i;
+                  else if (!__comp(__i.front(), __result.second.front()))
+                      __result.second = __i;
+                  break;
+              }
+              else
+              {
+                  if (__comp(__r.front(), __i.front()))
+                  {
+                      if (__comp(__r.front(), __result.first.front()))
+                          __result.first = __r;
+                      if (!__comp(__i.front(), __result.second.front()))
+                          __result.second = __i;
+                  }
+                  else
+                  {
+                      if (__comp(__i.front(), __result.first.front()))
+                          __result.first = __i;
+                      if (!__comp(__r.front(), __result.second.front()))
+                          __result.second = __r;
+                  }
+              }
+          }
+      }
+  }
+  return __result;
+}
+
+template <class _ForwardRange>
+inline _LIBCPP_INLINE_VISIBILITY
+std::pair<_ForwardRange, _ForwardRange>
+minmax_element(_ForwardRange __r)
+{
+    return _VSTD::minmax_element(__r, __less<typename range_traits<_ForwardRange>::value_type>());
+}
+
+// minmax
+
+template<class _Tp, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+pair<const _Tp&, const _Tp&>
+minmax(const _Tp& __a, const _Tp& __b, _Compare __comp)
+{
+    return __comp(__b, __a) ? pair<const _Tp&, const _Tp&>(__b, __a) :
+                              pair<const _Tp&, const _Tp&>(__a, __b);
+}
+
+template<class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+pair<const _Tp&, const _Tp&>
+minmax(const _Tp& __a, const _Tp& __b)
+{
+    return _VSTD::minmax(__a, __b, __less<_Tp>());
+}
+
+#ifndef _LIBCPP_HAS_NO_GENERALIZED_INITIALIZERS
+
+template<class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+pair<_Tp, _Tp>
+minmax(initializer_list<_Tp> __t)
+{
+    pair<_VSTD::iter_range<const _Tp*>, _VSTD::iter_range<const _Tp*> > __p =
+	_VSTD::minmax_element(_VSTD::make_iter_range(__t.begin(), __t.end()));
+    return pair<_Tp, _Tp>(__p.first.front(), __p.second.front());
+}
+
+template<class _Tp, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+pair<_Tp, _Tp>
+minmax(initializer_list<_Tp> __t, _Compare __comp)
+{
+    pair<_VSTD::iter_range<const _Tp*>, _VSTD::iter_range<const _Tp*> > __p =
+	_VSTD::minmax_element(std::make_iter_range(__t.begin(), __t.end()), __comp);
+    return pair<_Tp, _Tp>(__p.first.front(), __p.second.front());
+}
+
+// random_shuffle
+
+// __independent_bits_engine
+
+template <unsigned long long _Xp, size_t _Rp>
+struct __log2_imp
+{
+    static const size_t value = _Xp & ((unsigned long long)(1) << _Rp) ? _Rp
+                                           : __log2_imp<_Xp, _Rp - 1>::value;
+};
+
+template <unsigned long long _Xp>
+struct __log2_imp<_Xp, 0>
+{
+    static const size_t value = 0;
+};
+
+template <size_t _Rp>
+struct __log2_imp<0, _Rp>
+{
+    static const size_t value = _Rp + 1;
+};
+
+template <class _UI, _UI _Xp>
+struct __log2
+{
+    static const size_t value = __log2_imp<_Xp,
+                                         sizeof(_UI) * __CHAR_BIT__ - 1>::value;
+};
+
+template<class _Engine, class _UIntType>
+class __independent_bits_engine
+{
+public:
+    // types
+    typedef _UIntType result_type;
+
+private:
+    typedef typename _Engine::result_type _Engine_result_type;
+    typedef typename conditional
+        <
+            sizeof(_Engine_result_type) <= sizeof(result_type),
+                result_type,
+                _Engine_result_type
+        >::type _Working_result_type;
+
+    _Engine& __e_;
+    size_t __w_;
+    size_t __w0_;
+    size_t __n_;
+    size_t __n0_;
+    _Working_result_type __y0_;
+    _Working_result_type __y1_;
+    _Engine_result_type __mask0_;
+    _Engine_result_type __mask1_;
+
+#ifdef _LIBCPP_HAS_NO_CONSTEXPR
+    static const _Working_result_type _Rp = _Engine::_Max - _Engine::_Min
+                                          + _Working_result_type(1);
+#else
+    static _LIBCPP_CONSTEXPR const _Working_result_type _Rp = _Engine::max() - _Engine::min()
+                                                      + _Working_result_type(1);
+#endif
+    static _LIBCPP_CONSTEXPR const size_t __m = __log2<_Working_result_type, _Rp>::value;
+    static _LIBCPP_CONSTEXPR const size_t _WDt = numeric_limits<_Working_result_type>::digits;
+    static _LIBCPP_CONSTEXPR const size_t _EDt = numeric_limits<_Engine_result_type>::digits;
+
+public:
+    // constructors and seeding functions
+    __independent_bits_engine(_Engine& __e, size_t __w);
+
+    // generating functions
+    result_type operator()() {return __eval(integral_constant<bool, _Rp != 0>());}
+
+private:
+    result_type __eval(false_type);
+    result_type __eval(true_type);
+};
+
+template<class _Engine, class _UIntType>
+__independent_bits_engine<_Engine, _UIntType>
+    ::__independent_bits_engine(_Engine& __e, size_t __w)
+        : __e_(__e),
+          __w_(__w)
+{
+    __n_ = __w_ / __m + (__w_ % __m != 0);
+    __w0_ = __w_ / __n_;
+    if (_Rp == 0)
+        __y0_ = _Rp;
+    else if (__w0_ < _WDt)
+        __y0_ = (_Rp >> __w0_) << __w0_;
+    else
+        __y0_ = 0;
+    if (_Rp - __y0_ > __y0_ / __n_)
+    {
+        ++__n_;
+        __w0_ = __w_ / __n_;
+        if (__w0_ < _WDt)
+            __y0_ = (_Rp >> __w0_) << __w0_;
+        else
+            __y0_ = 0;
+    }
+    __n0_ = __n_ - __w_ % __n_;
+    if (__w0_ < _WDt - 1)
+        __y1_ = (_Rp >> (__w0_ + 1)) << (__w0_ + 1);
+    else
+        __y1_ = 0;
+    __mask0_ = __w0_ > 0 ? _Engine_result_type(~0) >> (_EDt - __w0_) :
+                          _Engine_result_type(0);
+    __mask1_ = __w0_ < _EDt - 1 ?
+                               _Engine_result_type(~0) >> (_EDt - (__w0_ + 1)) :
+                               _Engine_result_type(~0);
+}
+
+template<class _Engine, class _UIntType>
+inline
+_UIntType
+__independent_bits_engine<_Engine, _UIntType>::__eval(false_type)
+{
+    return static_cast<result_type>(__e_() & __mask0_);
+}
+
+template<class _Engine, class _UIntType>
+_UIntType
+__independent_bits_engine<_Engine, _UIntType>::__eval(true_type)
+{
+    result_type _Sp = 0;
+    for (size_t __k = 0; __k < __n0_; ++__k)
+    {
+        _Engine_result_type __u;
+        do
+        {
+            __u = __e_() - _Engine::min();
+        } while (__u >= __y0_);
+        if (__w0_ < _WDt)
+            _Sp <<= __w0_;
+        else
+            _Sp = 0;
+        _Sp += __u & __mask0_;
+    }
+    for (size_t __k = __n0_; __k < __n_; ++__k)
+    {
+        _Engine_result_type __u;
+        do
+        {
+            __u = __e_() - _Engine::min();
+        } while (__u >= __y1_);
+        if (__w0_ < _WDt - 1)
+            _Sp <<= __w0_ + 1;
+        else
+            _Sp = 0;
+        _Sp += __u & __mask1_;
+    }
+    return _Sp;
+}
+
+// uniform_int_distribution
+
+template<class _IntType = int>
+class uniform_int_distribution
+{
+public:
+    // types
+    typedef _IntType result_type;
+
+    class param_type
+    {
+        result_type __a_;
+        result_type __b_;
+    public:
+        typedef uniform_int_distribution distribution_type;
+
+        explicit param_type(result_type __a = 0,
+                            result_type __b = numeric_limits<result_type>::max())
+            : __a_(__a), __b_(__b) {}
+
+        result_type a() const {return __a_;}
+        result_type b() const {return __b_;}
+
+        friend bool operator==(const param_type& __x, const param_type& __y)
+            {return __x.__a_ == __y.__a_ && __x.__b_ == __y.__b_;}
+        friend bool operator!=(const param_type& __x, const param_type& __y)
+            {return !(__x == __y);}
+    };
+
+private:
+    param_type __p_;
+
+public:
+    // constructors and reset functions
+    explicit uniform_int_distribution(result_type __a = 0,
+                                      result_type __b = numeric_limits<result_type>::max())
+        : __p_(param_type(__a, __b)) {}
+    explicit uniform_int_distribution(const param_type& __p) : __p_(__p) {}
+    void reset() {}
+
+    // generating functions
+    template<class _URNG> result_type operator()(_URNG& __g)
+        {return (*this)(__g, __p_);}
+    template<class _URNG> result_type operator()(_URNG& __g, const param_type& __p);
+
+    // property functions
+    result_type a() const {return __p_.a();}
+    result_type b() const {return __p_.b();}
+
+    param_type param() const {return __p_;}
+    void param(const param_type& __p) {__p_ = __p;}
+
+    result_type min() const {return a();}
+    result_type max() const {return b();}
+
+    friend bool operator==(const uniform_int_distribution& __x,
+                           const uniform_int_distribution& __y)
+        {return __x.__p_ == __y.__p_;}
+    friend bool operator!=(const uniform_int_distribution& __x,
+                           const uniform_int_distribution& __y)
+            {return !(__x == __y);}
+};
+
+template<class _IntType>
+template<class _URNG>
+typename uniform_int_distribution<_IntType>::result_type
+uniform_int_distribution<_IntType>::operator()(_URNG& __g, const param_type& __p)
+{
+    typedef typename conditional<sizeof(result_type) <= sizeof(uint32_t),
+                                            uint32_t, uint64_t>::type _UIntType;
+    const _UIntType _Rp = __p.b() - __p.a() + _UIntType(1);
+    if (_Rp == 1)
+        return __p.a();
+    const size_t _Dt = numeric_limits<_UIntType>::digits;
+    typedef __independent_bits_engine<_URNG, _UIntType> _Eng;
+    if (_Rp == 0)
+        return static_cast<result_type>(_Eng(__g, _Dt)());
+    size_t __w = _Dt - __clz(_Rp) - 1;
+    if ((_Rp & (_UIntType(~0) >> (_Dt - __w))) != 0)
+        ++__w;
+    _Eng __e(__g, __w);
+    _UIntType __u;
+    do
+    {
+        __u = __e();
+    } while (__u >= _Rp);
+    return static_cast<result_type>(__u + __p.a());
+}
+
+class __rs_default;
+
+__rs_default __rs_get();
+
+class __rs_default
+{
+    static unsigned __c_;
+
+    __rs_default();
+public:
+    typedef unsigned result_type;
+
+    static const result_type _Min = 0;
+    static const result_type _Max = 0xFFFFFFFF;
+
+    __rs_default(const __rs_default&);
+    ~__rs_default();
+
+    result_type operator()();
+
+    static _LIBCPP_CONSTEXPR result_type min() {return _Min;}
+    static _LIBCPP_CONSTEXPR result_type max() {return _Max;}
+
+    friend __rs_default __rs_get();
+};
+
+__rs_default __rs_get();
+
+template <class _RandomAccessRange>
+void
+random_shuffle(_RandomAccessRange __r)
+{
+    typedef typename range_traits<_RandomAccessRange>::length_type length_type;
+    typedef uniform_int_distribution<ptrdiff_t> _Dp;
+    typedef typename _Dp::param_type _Pp;
+    length_type __d = __r.length();
+    if (__d > 1)
+    {
+        _Dp __uid;
+        __rs_default __g = __rs_get();
+        for (__r.pop_back(), --__d; __r.length() > 0; __r.pop_front(), --__d)
+        {
+            length_type __i = __uid(__g, _Pp(0, __d));
+            if (__i != length_type(0))
+                swap(__r.front(), (__r + __i).front());
+        }
+    }
+}
+
+template <class _RandomAccessRange, class _RandomNumberGenerator>
+void
+random_shuffle(_RandomAccessRange __r,
+#ifndef _LIBCPP_HAS_NO_RVALUE_REFERENCES
+               _RandomNumberGenerator&& __rand)
+#else
+               _RandomNumberGenerator& __rand)
+#endif
+{
+    typedef typename range_traits<_RandomAccessRange>::length_type length_type;
+    length_type __d = __r.length();
+    if (__d > 1)
+    {
+        for (__r.pop_back(); __r.length() > 0; __r.pop_front(), --__d)
+        {
+            length_type __i = __rand(__d);
+            swap(__r.front(), (__r + __i).front());
+        }
+    }
+}
+
+template<class _RandomAccessRange, class _UniformRandomNumberGenerator>
+    void shuffle(_RandomAccessRange __r,
+#ifndef _LIBCPP_HAS_NO_RVALUE_REFERENCES
+                 _UniformRandomNumberGenerator&& __g)
+#else
+                 _UniformRandomNumberGenerator& __g)
+#endif
+{
+    typedef typename range_traits<_RandomAccessRange>::length_type length_type;
+    typedef uniform_int_distribution<ptrdiff_t> _Dp;
+    typedef typename _Dp::param_type _Pp;
+    length_type __d = __r.length();
+    if (__d > 1)
+    {
+        _Dp __uid;
+        for (__r.pop_back(), --__d; __r.length() > 0; __r.pop_front(), --__d)
+        {
+            length_type __i = __uid(__g, _Pp(0, __d));
+            if (__i != length_type(0))
+                swap(__r.front(), (__r + __i).front());
+        }
+    }
+}
+
+#endif  // _LIBCPP_HAS_NO_GENERALIZED_INITIALIZERS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// is_sorted_until
+
+template <class _ForwardRange, class _Compare>
+_ForwardRange
+is_sorted_until(_ForwardRange __r, _Compare __comp)
+{
+    if (!__r.empty())
+    {
+        _ForwardRange __i = __r;
+        for (__i.pop_front(); !__i.empty(); __i.pop_front())
+        {
+            if (__comp(__i.front(), __r.front()))
+                return __i;
+            __r = __i;
+        }
+    }
+    return __r.after(__r);
+}
+
+template<class _ForwardRange>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+is_sorted_until(_ForwardRange __r)
+{
+    return _VSTD::is_sorted_until(__r, __less<typename range_traits<_ForwardRange>::value_type>());
+}
+
+// is_sorted
+
+template <class _ForwardRange, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+is_sorted(_ForwardRange __r, _Compare __comp)
+{
+    return _VSTD::is_sorted_until(__r, __comp).empty();
+}
+
+template<class _ForwardRange>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+is_sorted(_ForwardRange __r)
+{
+    return _VSTD::is_sorted(__r, __less<typename range_traits<_ForwardRange>::value_type>());
+}
+
+// sort
+
+#include <stdio.h>
+
+void printd(char *s) {
+    printf("%s\n---------------------\n",s);
+    for(int *i = begind; i != endd; ++i)
+	printf("%d ", *i);
+    printf("\n-------------------\n");
+}
+
+// stable, 2-3 compares, 0-2 swaps
+
+template <class _Compare, class _ForwardRange>
+unsigned
+__sort3(_ForwardRange __x, _ForwardRange __y, _ForwardRange __z, _Compare __c)
+{
+    unsigned __r = 0;
+    if (!__c(__y.front(), __x.front()))          // if x <= y
+    {
+        if (!__c(__z.front(), __y.front()))      // if y <= z
+            return __r;            // x <= y && y <= z
+                                   // x <= y && y > z
+        swap(__y.front(), __z.front());          // x <= z && y < z
+        __r = 1;
+        if (__c(__y.front(), __x.front()))       // if x > y
+        {
+            swap(__x.front(), __y.front());      // x < y && y <= z
+            __r = 2;
+        }
+        return __r;                // x <= y && y < z
+    }
+    if (__c(__z.front(), __y.front()))           // x > y, if y > z
+    {
+        swap(__x.front(), __z.front());          // x < y && y < z
+        __r = 1;
+        return __r;
+    }
+    swap(__x.front(), __y.front());              // x > y && y <= z
+    __r = 1;                       // x < y && x <= z
+    if (__c(__z.front(), __y.front()))           // if y > z
+    {
+        swap(__y.front(), __z.front());          // x <= y && y < z
+        __r = 2;
+    }
+    return __r;
+}                                  // x <= y && y <= z
+
+// stable, 3-6 compares, 0-5 swaps
+
+template <class _Compare, class _ForwardRange>
+unsigned
+__sort4(_ForwardRange __x1, _ForwardRange __x2, _ForwardRange __x3,
+            _ForwardRange __x4, _Compare __c)
+{
+    unsigned __r = __sort3<_Compare>(__x1, __x2, __x3, __c);
+    if (__c(__x4.front(), __x3.front()))
+    {
+        swap(__x3.front(), __x4.front());
+        ++__r;
+        if (__c(__x3.front(), __x2.front()))
+        {
+            swap(__x2.front(), __x3.front());
+            ++__r;
+            if (__c(__x2.front(), __x1.front()))
+            {
+                swap(__x1.front(), __x2.front());
+                ++__r;
+            }
+        }
+    }
+    return __r;
+}
+
+// stable, 4-10 compares, 0-9 swaps
+
+template <class _Compare, class _ForwardRange>
+unsigned
+__sort5(_ForwardRange __x1, _ForwardRange __x2, _ForwardRange __x3,
+            _ForwardRange __x4, _ForwardRange __x5, _Compare __c)
+{
+    unsigned __r = __sort4<_Compare>(__x1, __x2, __x3, __x4, __c);
+    if (__c(__x5.front(), __x4.front()))
+    {
+        swap(__x4.front(), __x5.front());
+        ++__r;
+        if (__c(__x4.front(), __x3.front()))
+        {
+            swap(__x3.front(), __x4.front());
+            ++__r;
+            if (__c(__x3.front(), __x2.front()))
+            {
+                swap(__x2.front(), __x3.front());
+                ++__r;
+                if (__c(__x2.front(), __x1.front()))
+                {
+                    swap(__x1.front(), __x2.front());
+                    ++__r;
+                }
+            }
+        }
+    }
+    return __r;
+}
+
+// Assumes size > 0
+template <class _Compare, class _BirdirectionalRange>
+void
+__selection_sort(_BirdirectionalRange __r, _Compare __comp)
+{
+    for (; !_VSTD::next(__r).empty(); __r.pop_front())
+    {
+        _BirdirectionalRange __i = _VSTD::min_element<_BirdirectionalRange,
+                                                        typename add_lvalue_reference<_Compare>::type>
+                                                       (__r, __comp);
+        if (__i != __r)
+            swap(__r.front(), __i.front());
+    }
+}
+
+template <class _Compare, class _BirdirectionalRange>
+void
+__insertion_sort(_BirdirectionalRange __r, _Compare __comp)
+{
+    typedef typename range_traits<_BirdirectionalRange>::value_type value_type;
+    if (!__r.empty())
+    {
+        _BirdirectionalRange __i = __r;
+        for (__i.pop_front(); !__i.empty(); __i.pop_front())
+        {
+            _BirdirectionalRange __j = __r.before(next(__i));
+            value_type __t(_VSTD::move(__j.front()));
+            for (_BirdirectionalRange __k = __r.before(__i); !__k.empty() && __comp(__t,  __k.back()); __j.pop_back(), __k.pop_back())
+                __j.back() = _VSTD::move(__k.back());
+            __j.back() = _VSTD::move(__t);
+        }
+    }
+}
+
+template <class _Compare, class _RandomAccessRange>
+void
+__insertion_sort_3(_RandomAccessRange __r, _Compare __comp)
+{
+    typedef typename range_traits<_RandomAccessRange>::value_type value_type;
+    _RandomAccessRange __j = __r+2;
+    __sort3<_Compare>(__r, __r+1, __j, __comp);
+    for (_RandomAccessRange __i = __j+1; !__i.empty(); __i.pop_front())
+    {
+        if (__comp(__i.front(), __j.front()))
+        {
+            value_type __t(_VSTD::move(__i.front()));
+            _RandomAccessRange __k = __r.before(next(__j));
+            __j = __r.before(next(__i));
+            do
+            {
+                __j.back() = _VSTD::move(__k.back());
+                __j = __k;
+		__k.pop_back();
+            } while (!__j.empty() && __comp(__t, __k.back()));
+	    // Perhaps this algorithm could be rewritten to better fit ranges.  Right now this is a direct translation from ranges with minimum changes.
+            if(!__j.empty()) __j.back() = _VSTD::move(__t); else __r.front() = _VSTD::move(__t);
+        }
+        __j = __i;
+    }
+}
+
+template <class _Compare, class _RandomAccessRange>
+bool
+__insertion_sort_incomplete(_RandomAccessRange __r, _Compare __comp)
+{
+    switch (__r.length())
+    {
+    case 0:
+    case 1:
+        return true;
+    case 2:
+        if (__comp(__r.back(), __r.front()))
+            swap(__r.front(), __r.back());
+        return true;
+    case 3:
+        _VSTD::__sort3<_Compare>(__r, __r+1, __r+2, __comp);
+        return true;
+    case 4:
+        _VSTD::__sort4<_Compare>(__r, __r+1, __r+2, __r+3, __comp);
+        return true;
+    case 5:
+        _VSTD::__sort5<_Compare>(__r, __r+1, __r+2, __r+3, __r+4, __comp);
+        return true;
+    }
+    typedef typename range_traits<_RandomAccessRange>::value_type value_type;
+    _RandomAccessRange __j = __r+2;
+    __sort3<_Compare>(__r, __r+1, __j, __comp);
+    const unsigned __limit = 8;
+    unsigned __count = 0;
+    for (_RandomAccessRange __i = __j+1; !__i.empty(); __i.pop_front())
+    {
+        if (__comp(__i.front(), __j.front()))
+        {
+            value_type __t(_VSTD::move(__i.front()));
+            _RandomAccessRange __k = __r.before(_VSTD::next(__j));
+            __j = __r.before(_VSTD::next(__i));
+            do
+            {
+                __j.back() = _VSTD::move(__k.back());
+                __j = __k;
+		__k.pop_back();
+            } while (!__j.empty() && __comp(__t, __k.back()));
+            if(!__j.empty()) __j.back() = _VSTD::move(__t); else __r.front() = _VSTD::move(__t);
+            if (++__count == __limit) {
+		__i.pop_front();
+                return __i.empty();
+	    }
+        }
+        __j = __i;
+    }
+    return true;
+}
+
+template <class _Compare, class _BirdirectionalRange>
+void
+__insertion_sort_move(_BirdirectionalRange __r1,
+                      typename range_traits<_BirdirectionalRange>::value_type* __first2, _Compare __comp)
+{
+    typedef typename range_traits<_BirdirectionalRange>::value_type value_type;
+    if (!__r1.empty())
+    {
+        __destruct_n __d(0);
+        unique_ptr<value_type, __destruct_n&> __h(__first2, __d);
+        value_type* __last2 = __first2;
+        ::new(__last2) value_type(_VSTD::move(__r1.front()));
+        __d.__incr((value_type*)0);
+        for (++__last2, __r1.pop_front(); !__r1.empty(); ++__last2, __r1.pop_front())
+        {
+            value_type* __j2 = __last2;
+            value_type* __i2 = __j2;
+            if (__comp(__r1.front(), *--__i2))
+            {
+                ::new(__j2) value_type(_VSTD::move(*__i2));
+                __d.__incr((value_type*)0);
+                for (--__j2; __i2 != __first2 && __comp(__r1.front(),  *--__i2); --__j2)
+                    *__j2 = _VSTD::move(*__i2);
+                *__j2 = _VSTD::move(__r1.front());
+            }
+            else
+            {
+                ::new(__j2) value_type(_VSTD::move(__r1.front()));
+                __d.__incr((value_type*)0);
+            }
+        }
+        __h.release();
+    }
+}
+
+template <class _Compare, class _RandomAccessRange>
+void
+__sort(_RandomAccessRange __r, _Compare __comp)
+{
+    printf("entered __sort\n");
+    // _Compare is known to be a reference type
+    typedef typename range_traits<_RandomAccessRange>::length_type length_type;
+    typedef typename range_traits<_RandomAccessRange>::value_type value_type;
+    const length_type __limit = is_trivially_copy_constructible<value_type>::value &&
+                                    is_trivially_copy_assignable<value_type>::value ? 30 : 6;
+    while (true)
+    {
+    __restart:
+        length_type __len = __r.length();
+        switch (__len)
+        {
+        case 0:
+        case 1:
+            return;
+        case 2:
+            if (__comp(__r.back(), __r.front()))
+                swap(__r.front(), __r.back());
+            return;
+        case 3:
+            _VSTD::__sort3<_Compare>(__r, __r+1, __r+2, __comp);
+            return;
+        case 4:
+            _VSTD::__sort4<_Compare>(__r, __r+1, __r+2, __r+3, __comp);
+            return;
+        case 5:
+            _VSTD::__sort5<_Compare>(__r, __r+1, __r+2, __r+3, __r+4, __comp);
+            return;
+        }
+	printd("first");
+        if (__len <= __limit)
+        {
+            _VSTD::__insertion_sort_3<_Compare>(__r, __comp);
+            return;
+        }
+	printd("second");
+        // __len > 5
+        _RandomAccessRange __m = __r;
+        _RandomAccessRange __lm1 = __r.after(__r-1);
+        unsigned __n_swaps;
+        {
+        length_type __delta;
+        if (__len >= 1000)
+        {
+            __delta = __len/2;
+            __m += __delta;
+            __delta /= 2;
+            __n_swaps = _VSTD::__sort5<_Compare>(__r, __r + __delta, __m, __m+__delta, __lm1, __comp);
+	    printd("third");
+        }
+        else
+        {
+            __delta = __len/2;
+            __m += __delta;
+            __n_swaps = _VSTD::__sort3<_Compare>(__r, __m, __lm1, __comp);
+	    printd("fourth");
+        }
+        }
+        // *__m is median
+        // partition [__first, __m) < *__m and *__m <= [__m, __last)
+        // (this inhibits tossing elements equivalent to __m around unnecessarily)
+        _RandomAccessRange __ij = __r.before(__lm1); // This replaces two iterators in the iterator version
+	printf("lm1: %d %d\n", __lm1.begin()-begind, __lm1.end()-begind);
+	printf("j: %d\n", __ij.end()-begind);
+        // j points beyond range to be tested, *__m is known to be <= *__lm1
+        // The search going up is known to be guarded but the search coming down isn't.
+        // Prime the downward search with a guard.
+        if (!__comp(__ij.front(), __m.front()))  // if *__first == *__m
+	{
+            // *__first == *__m, *__first doesn't go in first part
+            // manually guard downward moving __j against __i
+            while (true)
+            {
+                if (prev(__ij).empty())
+                {
+		    printf("__ij.empty()\n");
+                    // *__first == *__m, *__m <= all other elements
+                    // Parition instead into [__first, __i) == *__first and *__first < [__i, __last)
+                    __ij = __r.after_including(__ij);
+                    __ij.pop_front(); // __first + 1
+                    if (!__comp(__r.front(), __r.back()))  // we need a guard if *__first == *(__last-1)
+                    {
+                        while (true)
+                        {
+                            if (prev(__ij).empty()) // only __last-1 left
+                                return;  // [__first, __last) all equivalent elements
+                            if (__comp(__r.front(), __ij.front()))
+                            {
+                                swap(__ij.front(), __ij.back());
+                                ++__n_swaps;
+                                __ij.pop_front();
+                                break;
+                            }
+                            __ij.pop_front();
+                        }
+                    }
+		    printd("fifth");
+                    // [__first, __i) == *__first and *__first < [__j, __last) and __j == __last - 1
+                    if (__ij.empty())
+                        return;
+                    while (true)
+                    {
+                        while (!__comp(__r.front(), __ij.front()))
+                            __ij.pop_front();
+			while (!__ij.empty() && __comp(__r.front(), __ij.back()))
+                            __ij.pop_back();
+                        if (__ij.empty())
+                            break;
+                        swap(__ij.front(), __ij.back());
+                        ++__n_swaps;
+                        __ij.pop_front();
+                    }
+                    // [__first, __i) == *__first and *__first < [__i, __last)
+                    // The first part is sorted, sort the secod part
+                    // _VSTD::__sort<_Compare>(__i, __last, __comp);
+                    __r = __r.after(__ij);
+                    goto __restart;
+                }
+			    printd("sixth-1");
+                if (__comp(__ij.back(), __m.front()))
+                {
+		    printf("j: %d\n", __ij.end()-begind);
+		    printf("*_m = %d\n", __m.front());
+                    swap(__ij.front(), __ij.back());
+                    ++__n_swaps;
+                    break;  // found guard for downward moving __j, now use unguarded partition
+                }
+	    __ij.pop_back();
+            }
+        }
+	printd("sixth");
+        // It is known that *__i < *__m
+        __ij.pop_front();
+        // j points beyond range to be tested, *__m is known to be <= *__lm1
+        // if not yet partitioned...
+        if (!__ij.empty())
+        {
+            // known that *(__i - 1) < *__m
+            // known that __i <= __m
+            while (true)
+            {
+                // __m still guards upward moving __i
+                while (__comp(__ij.front(), __m.front()))
+                    __ij.pop_front();
+                // It is now known that a guard exists for downward moving __j
+		printf("j: %d\n", __ij.end()-begind);
+                for (;!__ij.empty() && !__comp(__ij.back(), __m.front()); __ij.pop_back())
+                    ;
+		printf("j: %d\n", __ij.end()-begind);
+                if (__ij.empty())
+                    break;
+		printf("swap %d %d\n", __ij.begin()-begind, __ij.end()-begind);
+                swap(__ij.front(), __ij.back());
+                ++__n_swaps;
+                // It is known that __m != __j
+                // If __m just moved, follow it
+                if (__m.front_equal(__ij))
+                    __m = __r.after(__ij-1);
+                __ij.pop_front();
+            }
+        }
+	printd("seventh");
+        // [__first, __i) < *__m and *__m <= [__i, __last)
+        if (!__ij.front_equal(__m) && __comp(__m.front(), __ij.front()))
+        {
+            swap(__ij.front(), __m.front());
+            ++__n_swaps;
+        }
+        // [__first, __i) < *__i and *__i <= [__i+1, __last)
+        // If we were given a perfect partition, see if insertion sort is quick...
+        if (__n_swaps == 0)
+        {
+            bool __fs = _VSTD::__insertion_sort_incomplete<_Compare>(__r.before(__ij), __comp);
+            if (_VSTD::__insertion_sort_incomplete<_Compare>(__r.after_including(__ij+1), __comp))
+            {
+                if (__fs)
+                    return;
+                __r = __r.before(__ij);
+                continue;
+            }
+            else
+            {
+                if (__fs)
+                {
+                    __r = __r.after(__ij+1);
+                    continue;
+                }
+            }
+        }
+	printd("eight");
+        // sort smaller range with recursive call and larger with tail recursion elimination
+        if (__r.before(__ij).length() < __r.after_including(__ij).length())
+        {
+            _VSTD::__sort<_Compare>(__r.before(__ij), __comp);
+            // _VSTD::__sort<_Compare>(__i+1, __last, __comp);
+            __r = __r.after_including(__ij+1);
+        }
+        else
+        {
+            _VSTD::__sort<_Compare>(__r.after_including(__ij+1), __comp);
+            // _VSTD::__sort<_Compare>(__first, __i, __comp);
+            __r = __r.before(__ij);
+        }
+	printd("ninth");
+    }
+}
+
+// This forwarder keeps the top call and the recursive calls using the same instantiation, forcing a reference _Compare
+template <class _RandomAccessRange, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+void
+sort(_RandomAccessRange __r, _Compare __comp)
+{
+    printf("entered sort\n");
+    typedef typename add_lvalue_reference<_Compare>::type _Comp_ref;
+    __sort<_Comp_ref>(__r, __comp);
+    printd("tenth");
+}
+
+template <class _RandomAccessRange>
+inline _LIBCPP_INLINE_VISIBILITY
+void
+sort(_RandomAccessRange __r)
+{
+    _VSTD::sort(__r, __less<typename range_traits<_RandomAccessRange>::value_type>());
+}
+
+// upper_bound
+
+template <class _Compare, class _ForwardRange, class _Tp>
+_ForwardRange
+__upper_bound(_ForwardRange __r, const _Tp& __value_, _Compare __comp)
+{
+    typedef typename range_traits<_ForwardRange>::length_type length_type;
+    length_type __len = _VSTD::distance(__r);
+    while (__len != 0)
+    {
+        length_type __l2 = __len / 2;
+        _ForwardRange __m = __r;
+        _VSTD::advance(__m, __l2);
+        if (__comp(__value_, __m.front()))
+            __len = __l2;
+        else
+        {
+	    __m.pop_front();
+            __r = __m;
+            __len -= __l2 + 1;
+        }
+    }
+    return __r;
+}
+
+template <class _ForwardRange, class _Tp, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+upper_bound(_ForwardRange __r, const _Tp& __value_, _Compare __comp)
+{
+    typedef typename add_lvalue_reference<_Compare>::type _Comp_ref;
+    return __upper_bound<_Comp_ref>(__r, __value_, __comp);
+}
+
+template <class _ForwardRange, class _Tp>
+inline _LIBCPP_INLINE_VISIBILITY
+_ForwardRange
+upper_bound(_ForwardRange __r, const _Tp& __value_)
+{
+    return _VSTD::upper_bound(__r, __value_,
+                             __less<_Tp, typename range_traits<_ForwardRange>::value_type>());
+}
+
+// lexicographical_compare
+
+template <class _Compare, class _InputRange1, class _InputRange2>
+bool
+__lexicographical_compare(_InputRange1 __r1,
+                          _InputRange2 __r2, _Compare __comp)
+{
+    for (; !__r2.empty(); __r1.pop_front(), __r2.pop_front())
+    {
+        if (__r1.empty() || __comp(__r1.front(), __r2.front()))
+            return true;
+        if (__comp(__r2.front(), __r1.front()))
+            return false;
+    }
+    return false;
+}
+
+template <class _InputRange1, class _InputRange2, class _Compare>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+lexicographical_compare(_InputRange1 __r1,
+                        _InputRange2 __r2, _Compare __comp)
+{
+    typedef typename add_lvalue_reference<_Compare>::type _Comp_ref;
+    return __lexicographical_compare<_Comp_ref>(__r1, __r2, __comp);
+}
+
+template <class _InputRange1, class _InputRange2>
+inline _LIBCPP_INLINE_VISIBILITY
+bool
+lexicographical_compare(_InputRange1 __r1,
+                        _InputRange2 __r2)
+{
+    return _VSTD::lexicographical_compare(__r1, __r2,
+                                         __less<typename range_traits<_InputRange1>::value_type,
+                                                typename range_traits<_InputRange2>::value_type>());
 }
 
 // More to come

@@ -23,3 +23,7 @@ TODO:
    - Perhaps subrange operations should be disabled alltogether on unbounded ranges?  That would be different from iterators.
 - It probably does not make sense to have bidirectional bounded ranges.  They all should be forward ranges.  Again, D allows to test such things with a static if, but with concepts, a parallel hierarchy must be created if we want to avoid pop_back and such on unbounded ranges.
 - Infinite (unbounded) ranges can be traversed forward or backward.  It is up to the user to know which kind of range is she dealing with.  Also, there can be unbounded ranges in both directions.
+
+
+- had to make extra versions of headers that include algorithm to avoid clashes.  
+- library modified only as far as necessary to run the converted tests
