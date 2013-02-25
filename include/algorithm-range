@@ -1025,7 +1025,7 @@ remove_copy_if(_InputRange __r, _OutputRange __result, _Predicate __pred)
         if (!__pred(__r.front()))
         {
             __result.front() = __r.front();
-            __result.front();
+            __result.pop_front();
         }
     }
     return __result;
