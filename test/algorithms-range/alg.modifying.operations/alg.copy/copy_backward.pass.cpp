@@ -31,10 +31,10 @@ test()
     int ib[N] = {0};
 
     InRange irg(std::make_iter_range(ia, ia+N));
-    OutRange org(std::make_single_iter_backward_range(ib+N-1));
+    OutRange org(std::make_single_iter_backward_range(ib+N));
 
     OutRange r = std::copy_backward(irg, org);
-    assert(base(r).base() == ib-1);
+    assert(base(r).base() == ib);
     for (unsigned i = 0; i < N; ++i)
         assert(ia[i] == ib[i]);
 }
