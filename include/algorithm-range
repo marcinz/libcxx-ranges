@@ -936,12 +936,10 @@ generate(_ForwardRange __r, _Generator __gen)
 
 // generate_n
 
-// Since the interface is the same as the one for the iterator version, we need to change the name of this algorithm.
-
 template <class _OutputRange, class _Size, class _Generator>
 inline _LIBCPP_INLINE_VISIBILITY
 _OutputRange
-generate_n_range(_OutputRange __r, _Size __n, _Generator __gen)
+generate_n(_OutputRange __r, _Size __n, _Generator __gen)
 {
     for (; __n > 0; __r.pop_front(), --__n)
         __r.front() = __gen();
