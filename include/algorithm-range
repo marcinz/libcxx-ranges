@@ -952,22 +952,22 @@ template <class _ForwardRange, class _Tp>
 _ForwardRange
 remove(_ForwardRange __r, const _Tp& __value_)
 {
-    _ForwardRange __m = _VSTD::find(__r, __value_);
-    if (!__m.empty())
+    __r = _VSTD::find(__r, __value_);
+    if (!__r.empty())
     {
-        _ForwardRange __i = __m;
+        _ForwardRange __i = __r;
 	__i.pop_front();
         while (!__i.empty())
         {
             if (!(__i.front() == __value_))
             {
-                __m.front() = _VSTD::move(__i.front());
-                __m.pop_front();
+                __r.front() = _VSTD::move(__i.front());
+                __r.pop_front();
             }
 	    __i.pop_front();
         }
     }
-    return __r.before(__m);
+    return __r;
 }
 
 // remove_if
@@ -976,23 +976,23 @@ template <class _ForwardRange, class _Predicate>
 _ForwardRange
 remove_if(_ForwardRange __r, _Predicate __pred)
 {
-    _ForwardRange __m = _VSTD::find_if<_ForwardRange, typename add_lvalue_reference<_Predicate>::type>
+    __r = _VSTD::find_if<_ForwardRange, typename add_lvalue_reference<_Predicate>::type>
                            (__r, __pred);
-    if (!__m.empty())
+    if (!__r.empty())
     {
-        _ForwardRange __i = __m;
+        _ForwardRange __i = __r;
 	__i.pop_front();
         while (!__i.empty())
         {
             if (!__pred(__i.front()))
             {
-                __m.front() = _VSTD::move(__i.front());
-                __m.pop_front();
+                __r.front() = _VSTD::move(__i.front());
+                __r.pop_front();
             }
 	    __i.pop_front();
         }
     }
-    return __r.before(__m);
+    return __r;
 }
 
 // remove_copy
