@@ -246,12 +246,12 @@ public:
     typedef typename iterator_traits<_Iter>::reference       reference;
 
     _LIBCPP_INLINE_VISIBILITY single_iter_backward_range() {}
-    _LIBCPP_INLINE_VISIBILITY explicit single_iter_backward_range(_Iter __i) : __iter(__i) {}
+    _LIBCPP_INLINE_VISIBILITY explicit single_iter_backward_range(_Iter __i) : __iter(--__i) {}
     template <class _Up> _LIBCPP_INLINE_VISIBILITY single_iter_backward_range(const single_iter_backward_range<_Up>& __u) : __iter(__u.base()) {}
     _LIBCPP_INLINE_VISIBILITY bool empty() const {return false;}
-    _LIBCPP_INLINE_VISIBILITY _Iter base() const {return __iter;}
-    _LIBCPP_INLINE_VISIBILITY reference front() const {return *__iter;}
-    _LIBCPP_INLINE_VISIBILITY void pop_front() {return ++__iter;}
+    _LIBCPP_INLINE_VISIBILITY _Iter base() const {_Iter __tmp(__iter); return ++__tmp;}
+    _LIBCPP_INLINE_VISIBILITY reference front() const {assert(false); return _Iter();}
+    _LIBCPP_INLINE_VISIBILITY void pop_front() {assert(false); return _Iter();}
     _LIBCPP_INLINE_VISIBILITY reference back() const {return *__iter;}
     _LIBCPP_INLINE_VISIBILITY void pop_back() {return --__iter;}
     _LIBCPP_INLINE_VISIBILITY single_iter_backward_range operator+(length_type __n) const {return single_iter_backward_range(__iter+__n);}
