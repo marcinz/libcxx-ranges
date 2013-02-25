@@ -113,7 +113,7 @@ __find_end(_ForwardRange1 __r1,
         {
             if (__r1.empty())         // if source exhausted return last correct answer
                 return __r;                  //    (or __last1 if never found)
-            if (__pred(__r1.front(), __r2.front))
+            if (__pred(__r1.front(), __r2.front()))
                 break;
             __r1.pop_front();
         }
@@ -125,12 +125,12 @@ __find_end(_ForwardRange1 __r1,
 	    __m2.pop_front();
             if (__m2.empty())
             {                         // Pattern exhaused, record answer and search for another one
-                __r = __r1.before(__m1);
+                __r = __r1.before_including(__m1);
                 __r1.pop_front();
                 break;
             }
 	    __m1.pop_front();
-            if (__m1.epmty())     // Source exhausted, return last answer
+            if (__m1.empty())     // Source exhausted, return last answer
                 return __r;
             if (!__pred(__m1.front(), __m2.front()))  // mismatch, restart with a new __first
             {
@@ -148,11 +148,10 @@ __find_end(_BidirectionalRange1 __r1,
            bidirectional_range_tag, bidirectional_range_tag)
 {
     // modeled after search algorithm (in reverse)
-    if (__r2.epmty())
-        return after(__r1, __r1);  // Everything matches an empty sequence
+    if (__r2.empty())
+        return __r1.after(__r1);  // Everything matches an empty sequence
     _BidirectionalRange1 __l1 = __r1;
     _BidirectionalRange2 __l2 = __r2;
-    __l2.pop_back();
     while (true)
     {
         // Find last element in sequence 1 that matchs *(__last2-1), with a mininum of loop checks
@@ -160,9 +159,9 @@ __find_end(_BidirectionalRange1 __r1,
         {
             if (__l1.empty())  // return __last1 if no element matches *__first2
                 return __r1.after(__r1);
-	    __l1.pop_back();
             if (__pred(__l1.back(), __l2.back()))
                 break;
+	    __l1.pop_back();
         }
         // *__l1 matches *__l2, now match elements before here
         _BidirectionalRange1 __m1 = __l1;
@@ -170,15 +169,16 @@ __find_end(_BidirectionalRange1 __r1,
         while (true)
         {
             if (__m2.empty())  // If pattern exhausted, __m1 is the answer (works for 1 element pattern)
-                return __l1.after(__m1);
+                return __r1.after(__m1);
             if (__m1.empty())  // Otherwise if source exhaused, pattern not found
                 return __r1.after(__r1);
-	    __m1.pop_back(); __m2.pop_back();
             if (!__pred(__m1.back(), __m2.back()))  // if there is a mismatch, restart with a new __l1
             {
                 break;
             }  // else there is a match, check next elements
+	    __m1.pop_back(); __m2.pop_back();
         }
+	__l1.pop_back();
     }
 }
 
@@ -202,22 +202,22 @@ __find_end(_RandomAccessRange1 __r1,
         {
             if (__s.empty())
                 return __r1.after(__r1);
-	    __s.pop_back();
             if (__pred(__s.back(), __r2.back()))
                 break;
+	    __s.pop_back();
         }
         _RandomAccessRange1 __m1 = __r1.before_including(__s);
         _RandomAccessRange2 __m2 = __r2;
         while (true)
         {
             if (__m2.empty())
-                return __m1;
+                return __r1.after(__m1);
                                  // no need to check range on __m1 because __s guarantees we have enough source
-	    __m1.pop_back(); __m2.pop_back();
             if (!__pred(__m1.back(), __m2.back()))
             {
                 break;
             }
+	    __m1.pop_back(); __m2.pop_back();
         }
     }
 }
@@ -801,7 +801,9 @@ move_backward(_InputRange __r, _OutputRange __result)
 
 // move_backward with memmove not implemented
 
-// range_swap?
+// range_swap in type_traits
+
+// transform
 
 template <class _InputRange, class _OutputRange, class _UnaryOperation>
 inline _LIBCPP_INLINE_VISIBILITY
