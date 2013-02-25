@@ -2961,6 +2961,17 @@ iter_swap(_ForwardIterator1 __a, _ForwardIterator2 __b)
     swap(*__a, *__b);
 }
 
+template <class _ForwardRange1, class _ForwardRange2>
+inline _LIBCPP_INLINE_VISIBILITY
+void
+range_swap(_ForwardRange1 __a, _ForwardRange2 __b)
+    //                                  _NOEXCEPT_(_NOEXCEPT_(swap(*__a, *__b)))
+               _NOEXCEPT_(_NOEXCEPT_(swap(*_VSTD::declval<_ForwardRange1>(),
+                                          *_VSTD::declval<_ForwardRange2>())))
+{
+    swap(__a.front(), __b.front());
+}
+
 // __swappable
 
 namespace __detail
