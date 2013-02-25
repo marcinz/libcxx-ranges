@@ -276,15 +276,14 @@ adjacent_find(_ForwardRange __r, _BinaryPredicate __pred)
     if (!__r.empty())
     {
         _ForwardRange __i = __r;
-        while (!__i.empty())
+        for (__i.pop_front(); !__i.empty(); __i.pop_front())
         {
-	    __i.pop_front();
             if (__pred(__r.front(), __i.front()))
                 return __r;
             __r = __i;
         }
     }
-    return __r;
+    return __r.after(__r);
 }
 
 template <class _ForwardRange>
@@ -886,7 +885,7 @@ replace_copy_if(_InputRange __r, _OutputRange __result,
 template <class _OutputRange, class _Size, class _Tp>
 inline _LIBCPP_INLINE_VISIBILITY
 _OutputRange
-fill_n(_OutputRange __r, _Size __n, const _Tp& __value_, false_type)
+fill_n(_OutputRange __r, _Size __n, const _Tp& __value_)
 {
     for (; __n > 0; __r.pop_front(), --__n)
         __r.front() = __value_;
@@ -902,7 +901,7 @@ inline _LIBCPP_INLINE_VISIBILITY
 void
 __fill(_ForwardRange __r, const _Tp& __value_, forward_range_tag)
 {
-    for (; __r.empty(); __r.pop_front())
+    for (; !__r.empty(); __r.pop_front())
         __r.front() = __value_;
 }
 
@@ -1038,22 +1037,22 @@ template <class _ForwardRange, class _BinaryPredicate>
 _ForwardRange
 unique(_ForwardRange __r, _BinaryPredicate __pred)
 {
-    _ForwardRange __m = _VSTD::adjacent_find<_ForwardRange, typename add_lvalue_reference<_BinaryPredicate>::type>
+    __r = _VSTD::adjacent_find<_ForwardRange, typename add_lvalue_reference<_BinaryPredicate>::type>
                                  (__r, __pred);
-    if (!__m.empty())
+    if (!__r.empty())
     {
         // ...  a  a  ?  ...
         //      f     i
-        _ForwardRange __i = __m;
+        _ForwardRange __i = __r;
 	__i.pop_front();
         for (__i.pop_front(); !__i.empty(); __i.pop_front())
-            if (!__pred(__m.front(), __i.front())) {
-		__m.pop_front();
-                __m.front() = _VSTD::move(__i.front());
+            if (!__pred(__r.front(), __i.front())) {
+		__r.pop_front();
+                __r.front() = _VSTD::move(__i.front());
 	    }
-        __m.pop_front();
+        __r.pop_front();
     }
-    return __r.before(__m);
+    return __r;
 }
 
 template <class _ForwardRange>
@@ -1120,7 +1119,7 @@ __unique_copy(_InputRange __r, _ForwardRange __result, _BinaryPredicate __pred,
 {
     if (!__r.empty())
     {
-        __result.first() = __r.first();
+        __result.front() = __r.front();
         for (__r.pop_front(); !__r.empty(); __r.pop_front())
             if (!__pred(__result.front(), __r.front())) {
 		__result.pop_front();
