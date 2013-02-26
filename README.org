@@ -18,29 +18,32 @@ One of the basic objections against ranges is that they cannot represent "positi
 
 ** Range Concepts
 
-In this section, we describe the range concepts used in our implementation.  We assume concepts from [[http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf][n3351]], and we use the notation from that document.  While we use the notation of n3351, we do not apply its design goals, but rather we use it to describe the implementation as faithful to the existing STL as possible.  The concepts are "implemented" for testing in the [[https://github.com/marcinz/libcxx-ranges/blob/master/test/support/test_ranges.h][test_ranges.h]] file.
+Ranges are structured after the STL iterators as in current standard into output, input, forward, bidirectional, and random access ranges.  Range concepts are "implemented" for testing in the [[https://github.com/marcinz/libcxx-ranges/blob/master/test/support/test_ranges.h][test_ranges.h]] file.  Currently, we do not give a detailed description of ranges (only due to time constraints).  Here we discuss only a few interesting differences between ranges and iterators.
 
-*** Output Ranges
+The input range provides two strange operations, =front_equal= and =back_equal=.  Currently, only =front_equal= is used and only in the implementation of =sort=.  These operations compare the front and the back of the range, corresponding to comparing =first= or =last= iterators of iterator ranges.  They can be implemented with subrange operations, but directly comparing back and front only seemed more efficient.
 
-#+BEGIN_SRC C++
-concept Range<typename R> =
-  requires() {
-    ValueType<I>;
-    LengthType<I>;
-    Reference<I>;
-    BeforeType<I>;
-    AfterType<I>;
-  }
-#+END_SRC
+All ranges forward and up provide subrange operations =before=, =before_including=, =after=, and =after_including=.  The argument to these operations must be a subrange of the range on which the operation is performed.  The subrange relation cannot be checked via any operations, and must be known from the preconditions of the algorithm.  For example, if a range is only "popped" with =pop_front=, it is a subrange of the original range.  The =after_type= and =before_type= types must be the same as the original range for bounded ranges, but can be different for infinite ranges.  This is necessary because a subrange operation on unbounded ranges may result in a bounded range, changing the implementation details.  This is an interesting point for discussion: iterators expose "implementation details" of ranges allowing performing subrange operations by hand while ranges hide implementation details and require explicit subrange operations that must account for changing details in varying return types.  The changing return type can also be seen in the [[http://dlang.org/phobos/std_range.html#hasSlicing][D Phobos library]] for slicing.  While Phobos does not provide subrange operations, the reason for varying type in slicing is similar.
 
-
+For random access ranges, we implement slicing with =+= and =-= operators, which pop from the front and from the back of the range, respectively.  So, to take of 3 elements from the front and 2 from the back of a range =r= one would write =r+3-2=.  There is no reason why slicing could not be implemented through a different interface, and the current interface is only a first try. 
 
 * Issues
+
+The main issue with ranges that we observed until now is optimization.  Ranges do not allow for sharing between different ranges as is possible with iterators.  Furthermore, some operations may do more than is necessary.  One example are the =front_equal= and =back_equal= operations we discussed before.  
 
 * Status
 #+LABEL: sec:status
 
+Range algorithms are implemented in the ~include/algorithms-range~ file.  Currently, the only ranges we implemented are iterator wrapper ranges implemented in the ~include/range~ file.  
+
+The implementation is highly experimental.  Not all of the STL algorithms are translated, but a big chunk is.  The implementations were directly translated from their iterator versions, and no thought was put into making them more palatable and perhaps more optimal with ranges.
+
+All the translated algorithms are tested, and the tests can give an idea on how to use the algorithms.  Studying of the algorithms themselves vs. the iterator counterparts gives a good idea on how to use ranges.
+
+Further hints on what can be done with ranges can be taken from the [[http://dlang.org/phobos/][D Phobos Library]], but until now we only directly translated the iterator-based STL without attempting to extend it.
+
 * Footnotes
+
+Note: Footnotes do not render properly on GitHub.
 
 [fn:1] http://www.open-std.org/pipermail/ranges/2013-January/000009.html
 
