@@ -1,1 +1,18 @@
-* Test
+* Introduction
+
+The C++ Standardization Committee has tasked Study Group 9 (SG9) with researching the idea of using ranges instead or in addition to iterators.[fn:1]  This is an attempt to (re)implement the STL with ranges instead of iterators.  The purpose of this implementation is only to get the discussion going, either in the negative (rejecting ranges) or the positive (further discussion of ranges).  The implementation is purposefully as close to the original[fn:2] as possible.  This closeness allows one to directly compare the implementation of STL with ranges against an implementation with iterators.  Sometimes, this direct approach may result in implementations that are suboptimal for ranges, but this is a topic for a further discussion.
+
+The implementation is unfinished at the moment, but it covers a sizable chunk of STL.  The status of the implementation is discussed in [[sec:status]] in more detail.
+
+* Ranges
+
+* Issues
+
+* Status
+#+LABEL: sec:status
+
+* Footnotes
+
+[fn:1] http://www.open-std.org/pipermail/ranges/2013-January/000009.html
+
+[fn:2] "libc++" C++ Standard Library at http://libcxx.llvm.org/
