@@ -2,9 +2,38 @@
 
 The C++ Standardization Committee has tasked Study Group 9 (SG9) with researching the idea of using ranges instead or in addition to iterators.[fn:1]  This is an attempt to (re)implement the STL with ranges instead of iterators.  The purpose of this implementation is only to get the discussion going, either in the negative (rejecting ranges) or the positive (further discussion of ranges).  The implementation is purposefully as close to the original[fn:2] as possible.  This closeness allows one to directly compare the implementation of STL with ranges against an implementation with iterators.  Sometimes, this direct approach may result in implementations that are suboptimal for ranges, but this is a topic for a further discussion.
 
-The implementation is unfinished at the moment, but it covers a sizable chunk of STL.  The status of the implementation is discussed in [[sec:status]] in more detail.
+The implementation is unfinished at the moment, but it covers a sizable chunk of STL.  The status of the implementation is discussed in more detail [[sec:status][later on]] in this document.  This README file provides a very rudimentary discussion of the implementation that will hopefully be expanded by SG9.
 
 * Ranges
+
+A big question that SG9 has to answer is why ranges?  That is, what problem do ranges solve?  This implementation will hopefully help to investigate that problem.  Next, we discuss the differences and similarities between ranges and iterators.
+
+** Ranges "vs." Iterators
+
+Iterators are a generalization of pointers, allowing abstract algorithms without performance penalty oven algorithms actually implemented with pointers.  However, virtually all algorithms in STL operate on and return *ranges*.  Ranges can be kept as pairs of iterators or as a single iterator with some implicit knowledge on how many times can the iterator be advanced (bounded vs. counted ranges).  Even when an algorithm (such as say find) returns a "position" in a range as a single iterator, this iterator is not independent, and it forms two bounded ranges with the original "first" and "last" iterators.  Thus, there is no way of escaping ranges, even with the "position" iterators returned by some algorithms.
+
+Iterators allow direct manipulation of the details of ranges.  For example, two ranges can share iterators: =[first, last1)= and =[first, last2)= are two different ranges, but a smart programmer can "optimize" by sharing the first iterator.  With ranges as primitives, such sharing is probably not possible without some support from the compiler or without greatly complicating the interface of ranges.
+
+One of the basic objections against ranges is that they cannot represent "positions."  In this implementation, we contribute a possible remedy to this problem: subrange operations.  It is important to note that "position" iterators are usually used to form new ranges.  For example, given a call =auto result = find(first, last, 2)= creates two new ranges, =[first, result)= and =[result,last)=.  Without subrange operations, one may have to implement two different versions of find, each returning one of these ranges.  Subrange operations, on the other hand, allow one natural implementation that returns the "remainder" range representing =[result,last)= and extracting the "skipped" range with =r.before(result)= where =r= is the range searched.  Subrange operations make the concept of ranges a bit more "dangerous" as the programmer must know of the subrange relation between ranges.  Subrange operations on ranges that are not related by a subrange relation are erroneous and may lead to unexpected results.
+
+** Range Concepts
+
+In this section, we describe the range concepts used in our implementation.  We assume concepts from [[http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf][n3351]], and we use the notation from that document.  While we use the notation of n3351, we do not apply its design goals, but rather we use it to describe the implementation as faithful to the existing STL as possible.  The concepts are "implemented" for testing in the [[https://github.com/marcinz/libcxx-ranges/blob/master/test/support/test_ranges.h][test_ranges.h]] file.
+
+*** Output Ranges
+
+#+BEGIN_SRC C++
+concept Range<typename R> =
+  requires() {
+    ValueType<I>;
+    LengthType<I>;
+    Reference<I>;
+    BeforeType<I>;
+    AfterType<I>;
+  }
+#+END_SRC
+
+
 
 * Issues
 
