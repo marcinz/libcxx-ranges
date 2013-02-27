@@ -31,7 +31,6 @@ public:
 
     reference front() const {return rg_.front();}
     void pop_front() {rg_.pop_front();}
-    bool empty() const {return rg_.empty();}
 };
 
 template <class Rg>
