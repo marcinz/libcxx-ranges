@@ -26,7 +26,7 @@ void
 test(Range r, const T& value)
 {
     Range i = std::upper_bound(r, value, std::greater<int>());
-    for (Range j = r.before(i); !j.empty(); j.pop_front())
+    for (Range j = r.begin_begin(i); !j.empty(); j.pop_front())
 	assert(!std::greater<int>()(value, j.front()));
     for (Range j = i; !j.empty(); j.pop_front())
         assert(std::greater<int>()(value, j.front()));

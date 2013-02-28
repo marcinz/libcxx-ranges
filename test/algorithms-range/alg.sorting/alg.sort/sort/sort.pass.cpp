@@ -41,7 +41,7 @@ template <class RN>
 void
 test_sort_driver_driver(RN r, int start, RN real_last)
 {
-    for (RN i = r; i.front_after(r + start); i.pop_front())
+    for (RN i = r; i.begin() > (r + start).begin(); i.pop_front())
     {
         i.front() = start;
         if (i.empty())

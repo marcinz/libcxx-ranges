@@ -104,7 +104,7 @@ __find_end(_ForwardRange1 __r1,
            _ForwardRange2 __r2, _BinaryPredicate __pred,
            forward_range_tag, forward_range_tag)
 {
-    _ForwardRange1 __r = __r1.after(__r1);
+    _ForwardRange1 __r = __r1.end_end(__r1);
     if (__r2.empty())
 	return __r;
     while (true)
@@ -125,7 +125,7 @@ __find_end(_ForwardRange1 __r1,
 	    __m2.pop_front();
             if (__m2.empty())
             {                         // Pattern exhaused, record answer and search for another one
-                __r = __r1.before_including(__m1);
+                __r = __r1.begin_end(__m1);
                 __r1.pop_front();
                 break;
             }
@@ -149,7 +149,7 @@ __find_end(_BidirectionalRange1 __r1,
 {
     // modeled after search algorithm (in reverse)
     if (__r2.empty())
-        return __r1.after(__r1);  // Everything matches an empty sequence
+        return __r1.end_end(__r1);  // Everything matches an empty sequence
     _BidirectionalRange1 __l1 = __r1;
     _BidirectionalRange2 __l2 = __r2;
     while (true)
@@ -158,7 +158,7 @@ __find_end(_BidirectionalRange1 __r1,
         while (true)
         {
             if (__l1.empty())  // return __last1 if no element matches *__first2
-                return __r1.after(__r1);
+                return __r1.end_end(__r1);
             if (__pred(__l1.back(), __l2.back()))
                 break;
 	    __l1.pop_back();
@@ -169,9 +169,9 @@ __find_end(_BidirectionalRange1 __r1,
         while (true)
         {
             if (__m2.empty())  // If pattern exhausted, __m1 is the answer (works for 1 element pattern)
-                return __r1.after(__m1);
+                return __m1.end_end(__r1);
             if (__m1.empty())  // Otherwise if source exhaused, pattern not found
-                return __r1.after(__r1);
+                return __r1.end_end(__r1);
             if (!__pred(__m1.back(), __m2.back()))  // if there is a mismatch, restart with a new __l1
             {
                 break;
@@ -191,27 +191,27 @@ __find_end(_RandomAccessRange1 __r1,
     // Take advantage of knowing source and pattern lengths.  Stop short when source is smaller than pattern
     typename range_traits<_RandomAccessRange2>::length_type __len2 = __r2.length();
     if (__len2 == 0)
-        return __r1.after(__r1);
+        return __r1.end_end(__r1);
     typename range_traits<_RandomAccessRange1>::length_type __len1 = __r1.length();
     if (__len1 < __len2)
-        return __r1.after(__r1);
+        return __r1.end_end(__r1);
     _RandomAccessRange1 __s = __r1 + (__len2 - 1);  // End of pattern match can't go before here
     while (true)
     {
         while (true)
         {
             if (__s.empty())
-                return __r1.after(__r1);
+                return __r1.end_end(__r1);
             if (__pred(__s.back(), __r2.back()))
                 break;
 	    __s.pop_back();
         }
-        _RandomAccessRange1 __m1 = __r1.before_including(__s);
+        _RandomAccessRange1 __m1 = __r1.begin_end(__s);
         _RandomAccessRange2 __m2 = __r2;
         while (true)
         {
             if (__m2.empty())
-                return __r1.after(__m1);
+                return __m1.end_end(__r1);
                                  // no need to check range on __m1 because __s guarantees we have enough source
             if (!__pred(__m1.back(), __m2.back()))
             {
@@ -283,7 +283,7 @@ adjacent_find(_ForwardRange __r, _BinaryPredicate __pred)
             __r = __i;
         }
     }
-    return __r.after(__r);
+    return __r.end_end(__r);
 }
 
 template <class _ForwardRange>
@@ -448,7 +448,7 @@ __search(_ForwardRange1 __r1,
         {
 	    __m2.pop_front(); __m1.pop_front();
             if (__m2.empty())  // If pattern exhausted, __first1 is the answer (works for 1 element pattern)
-                return __r1.before(__m1);
+                return __r1.begin_begin(__m1);
             if (__m1.empty())  // Otherwise if source exhaused, pattern not found
                 return __m1;
             if (!__pred(__m1.front(), __m2.front()))  // if there is a mismatch, restart with a new __first1
@@ -474,7 +474,7 @@ __search(_RandomAccessRange1 __r1,
         return __r1;
     _D1 __len1 = __r1.length();
     if (__len1 < __len2)
-        return __r1.after(__r1);
+        return __r1.end_end(__r1);
     const _RandomAccessRange1 __s = __r1 - __len2;  // Start of pattern match can't go beyond here
     while (true)
     {
@@ -484,7 +484,7 @@ __search(_RandomAccessRange1 __r1,
             if (__pred(__r1.front(), __r2.front()))
                 break;
             if (__r1.length() == __r2.length())
-                return __r1.after(__r1);
+                return __r1.end_end(__r1);
             __r1.pop_front();
         }
 #else  // !_LIBCPP_UNROLL_LOOPS
@@ -528,7 +528,7 @@ __search(_RandomAccessRange1 __r1,
          {
 	     __m2.pop_front(); __m1.pop_front();
              if (__m2.empty())
-                 return __r1.before(__m1);
+                 return __r1.begin_begin(__m1);
              if (!__pred(__m1.front(), __m2.front()))
              {
                  __r1.pop_front();
@@ -772,7 +772,7 @@ typename enable_if
 copy_n(_InputRange __r, _Size __n, _OutputRange __result)
 {
     // could define a take function for slicing as below
-    return _VSTD::copy(__r.before(__r + __n), __result);
+    return _VSTD::copy(__r.begin_begin(__r + __n), __result);
 }
 
 template <class _InputRange, class _OutputRange>
@@ -1217,7 +1217,7 @@ __next_permutation(_BidirectionalRange __r, _Compare __comp)
             while (!__comp(__i.back(), __j.back()))
                 __j.pop_back();
             swap(__i.back(), __j.back());
-            _VSTD::reverse(__r.after(prev(__ip1)));
+            _VSTD::reverse(prev(__ip1).end_end(__r));
             return true;
         }
         if (prev(__i).empty())
@@ -1265,7 +1265,7 @@ __prev_permutation(_BidirectionalRange __r, _Compare __comp)
             while (!__comp(__j.back(), __i.back()))
                 __j.pop_back();
             swap(__i.back(), __j.back());
-            _VSTD::reverse(__r.after(prev(__ip1)));
+            _VSTD::reverse(prev(__ip1).end_end(__r));
             return true;
         }
         if (prev(__i).empty())
@@ -1315,7 +1315,7 @@ __rotate_right(_BidirectionalRange __r)
     value_type __tmp = _VSTD::move(__r.back());
     _BidirectionalRange __fp1 = _VSTD::move_backward(_VSTD::prev(__r), __r);
     __r.front() = _VSTD::move(__tmp);
-    return __r.after(__fp1);
+    return __fp1.end_end(__r);
 }
 
 // r1 is the whole range to be rotated, and r2 is the range of elements to be rotated to the left (r2 is at the end of r1)
@@ -1323,7 +1323,7 @@ template <class _ForwardRange>
 _ForwardRange
 __rotate_forward(_ForwardRange __r1, _ForwardRange __r2)
 {
-    _ForwardRange __i = __r1.before(__r2);
+    _ForwardRange __i = __r1.begin_begin(__r2);
     while (true)
     {
         swap(__r2.front(), __i.front());
@@ -1331,12 +1331,12 @@ __rotate_forward(_ForwardRange __r1, _ForwardRange __r2)
         if (__r2.empty())
             break;
         if (__i.empty())
-            { __r1 = __r1.after(__i);  __i = __r1.before(__r2); }
+            { __r1 = __i.end_end(__r1);  __i = __r1.begin_begin(__r2); }
     }
-    _ForwardRange __r = __r1.after_including(__i);
+    _ForwardRange __r = __i.begin_end(__r1);
     if (!__i.empty())
     {
-        __r2 = __r1.after(__i);
+        __r2 = __i.end_end(__r1);
         while (true)
         {
             swap(__i.front(), __r2.front());
@@ -1345,10 +1345,10 @@ __rotate_forward(_ForwardRange __r1, _ForwardRange __r2)
             {
                 if (__i.empty())
                     break;
-                __r2 = __r1.after(__i);
+                __r2 = __i.end_end(__r1);
             }
             else if (__i.empty())
-                { __r1 = __r1.after(__i); __i = __r1.before(__r2); }
+                { __r1 = __i.end_end(__r1); __i = __r1.begin_begin(__r2); }
         }
     }
     return __r;
@@ -1461,7 +1461,7 @@ _ForwardRange
 rotate(_ForwardRange __r1, _ForwardRange __r2)
 {
     if (__r1 == __r2)
-        return __r1.after(__r1);
+        return __r1.end_end(__r1);
     if (__r2.empty())
         return __r1;
     return _VSTD::__rotate(__r1, __r2,
@@ -1475,7 +1475,7 @@ inline _LIBCPP_INLINE_VISIBILITY
 _OutputRange
 rotate_copy(_ForwardRange __r1, _ForwardRange __r2, _OutputRange __result)
 {
-    return _VSTD::copy(__r1.before(__r2), _VSTD::copy(__r2, __result));
+    return _VSTD::copy(__r1.begin_begin(__r2), _VSTD::copy(__r2, __result));
 }
 
 // min_element
@@ -2080,7 +2080,7 @@ is_sorted_until(_ForwardRange __r, _Compare __comp)
             __r = __i;
         }
     }
-    return __r.after(__r);
+    return __r.end_end(__r);
 }
 
 template<class _ForwardRange>
@@ -2251,8 +2251,8 @@ __insertion_sort_3(_RandomAccessRange __r, _Compare __comp)
         if (__comp(__i.front(), __j.front()))
         {
             value_type __t(_VSTD::move(__i.front()));
-            _RandomAccessRange __k = __r.before(next(__j));
-            __j = __r.before(next(__i));
+            _RandomAccessRange __k = __r.begin_begin(next(__j));
+            __j = __r.begin_begin(next(__i));
             do
             {
                 __j.back() = _VSTD::move(__k.back());
@@ -2299,8 +2299,8 @@ __insertion_sort_incomplete(_RandomAccessRange __r, _Compare __comp)
         if (__comp(__i.front(), __j.front()))
         {
             value_type __t(_VSTD::move(__i.front()));
-            _RandomAccessRange __k = __r.before(_VSTD::next(__j));
-            __j = __r.before(_VSTD::next(__i));
+            _RandomAccessRange __k = __r.begin_begin(_VSTD::next(__j));
+            __j = __r.begin_begin(_VSTD::next(__i));
             do
             {
                 __j.back() = _VSTD::move(__k.back());
@@ -2392,7 +2392,7 @@ __sort(_RandomAccessRange __r, _Compare __comp)
         }
         // __len > 5
         _RandomAccessRange __m = __r;
-        _RandomAccessRange __lm1 = __r.after(__r-1);
+        _RandomAccessRange __lm1 = (__r-1).end_end(__r);
         unsigned __n_swaps;
         {
         length_type __delta;
@@ -2413,7 +2413,7 @@ __sort(_RandomAccessRange __r, _Compare __comp)
         // *__m is median
         // partition [__first, __m) < *__m and *__m <= [__m, __last)
         // (this inhibits tossing elements equivalent to __m around unnecessarily)
-        _RandomAccessRange __ij = __r.before(__lm1); // This replaces two iterators in the iterator version
+        _RandomAccessRange __ij = __r.begin_begin(__lm1); // This replaces two iterators in the iterator version
         // j points beyond range to be tested, *__m is known to be <= *__lm1
         // The search going up is known to be guarded but the search coming down isn't.
         // Prime the downward search with a guard.
@@ -2427,7 +2427,7 @@ __sort(_RandomAccessRange __r, _Compare __comp)
                 {
                     // *__first == *__m, *__m <= all other elements
                     // Parition instead into [__first, __i) == *__first and *__first < [__i, __last)
-                    __ij = __r.after_including(__ij);
+                    __ij = __ij.begin_end(__r);
                     __ij.pop_front(); // __first + 1
                     if (!__comp(__r.front(), __r.back()))  // we need a guard if *__first == *(__last-1)
                     {
@@ -2463,7 +2463,7 @@ __sort(_RandomAccessRange __r, _Compare __comp)
                     // [__first, __i) == *__first and *__first < [__i, __last)
                     // The first part is sorted, sort the secod part
                     // _VSTD::__sort<_Compare>(__i, __last, __comp);
-                    __r = __r.after(__ij);
+                    __r = __ij.end_end(__r);
                     goto __restart;
                 }
                 if (__comp(__ij.back(), __m.front()))
@@ -2497,13 +2497,13 @@ __sort(_RandomAccessRange __r, _Compare __comp)
                 ++__n_swaps;
                 // It is known that __m != __j
                 // If __m just moved, follow it
-                if (__m.front_equal(__ij))
-                    __m = __r.after(__ij-1);
+                if (__m.begin() == __ij.begin())
+		    __m = (__ij-1).end_end(__r);
                 __ij.pop_front();
             }
         }
         // [__first, __i) < *__m and *__m <= [__i, __last)
-        if (!__ij.front_equal(__m) && __comp(__m.front(), __ij.front()))
+        if (!(__ij.begin() == __m.begin()) && __comp(__m.front(), __ij.front()))
         {
             swap(__ij.front(), __m.front());
             ++__n_swaps;
@@ -2512,35 +2512,35 @@ __sort(_RandomAccessRange __r, _Compare __comp)
         // If we were given a perfect partition, see if insertion sort is quick...
         if (__n_swaps == 0)
         {
-            bool __fs = _VSTD::__insertion_sort_incomplete<_Compare>(__r.before(__ij), __comp);
-            if (_VSTD::__insertion_sort_incomplete<_Compare>(__r.after_including(__ij+1), __comp))
+            bool __fs = _VSTD::__insertion_sort_incomplete<_Compare>(__r.begin_begin(__ij), __comp);
+            if (_VSTD::__insertion_sort_incomplete<_Compare>((__ij+1).begin_end(__r), __comp))
             {
                 if (__fs)
                     return;
-                __r = __r.before(__ij);
+                __r = __r.begin_begin(__ij);
                 continue;
             }
             else
             {
                 if (__fs)
                 {
-                    __r = __r.after(__ij+1);
+                    __r = (__ij+1).end_end(__r);
                     continue;
                 }
             }
         }
         // sort smaller range with recursive call and larger with tail recursion elimination
-        if (__r.before(__ij).length() < __r.after_including(__ij).length())
+        if (__r.begin_begin(__ij).length() < __ij.begin_end(__r).length())
         {
-            _VSTD::__sort<_Compare>(__r.before(__ij), __comp);
+            _VSTD::__sort<_Compare>(__r.begin_begin(__ij), __comp);
             // _VSTD::__sort<_Compare>(__i+1, __last, __comp);
-            __r = __r.after_including(__ij+1);
+            __r = (__ij+1).begin_end(__r);
         }
         else
         {
-            _VSTD::__sort<_Compare>(__r.after_including(__ij+1), __comp);
+            _VSTD::__sort<_Compare>((__ij+1).begin_end(__r), __comp);
             // _VSTD::__sort<_Compare>(__first, __i, __comp);
-            __r = __r.before(__ij);
+            __r = __r.begin_begin(__ij);
         }
     }
 }
