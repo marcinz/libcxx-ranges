@@ -69,7 +69,7 @@ themselves implemented).
 We also need to be able to compare ranges, and the situation is
 similar to combining them. Ranges provide two functions
 ominously called =begin()= and =end()=. These functions can only be used for
-comparison using == for all ranges, and =<=, =>= for random access ranges.
+comparison using ==== for all ranges, and =<=, =>= for random access ranges.
 For example, one could write:
 
 #+BEGIN_SRC C++
