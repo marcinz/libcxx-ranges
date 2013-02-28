@@ -4,6 +4,7 @@
 #define RANGES_H
 
 #include <range>
+#include <type_traits>
 
 // All of the following range "prototypes" could be augmented by unbounded versions, which would prohibit certain operations not valid for an unbound range.
 
@@ -14,13 +15,30 @@ private:
     Rg rg_;
     
     template <class U> friend class output_range;
+    
+    class assigner {
+    private:
+	Rg r;
+    public:
+	assigner(const Rg r) : r(r) {}
+#ifndef _LIBCPP_HAS_NO_RVALUE_REFERENCES
+	template<typename T>
+	void operator=(T&& v) {r.front() = std::forward<T>(v);}
+#else
+	template<typename T>
+	void operator=(const T& v) {r.front() = v;}
+#endif
+    };
+	
 public:
     typedef std::output_range_tag                                      range_category;
-    typedef typename std::range_traits<Rg>::value_type                 value_type;
-    typedef typename std::range_traits<Rg>::length_type                length_type;
-    typedef typename std::range_traits<Rg>::reference                  reference;
-    typedef output_range<typename std::range_traits<Rg>::before_type>  before_type;
-    typedef output_range<typename std::range_traits<Rg>::after_type>   after_type;
+    typedef void                                                       value_type;
+    typedef void                                                       length_type;
+    typedef void                                                       reference;
+    typedef void                                                       begin_begin_type;
+    typedef void                                                       end_end_type;
+    typedef void                                                       begin_type;
+    typedef void                                                       end_type;
 
     Rg base() const {return rg_;}
     
@@ -29,9 +47,22 @@ public:
     template <class U>
         output_range(const output_range<U>& u) : rg_(u.rg_) {}
 
-    reference front() const {return rg_.front();}
+    assigner front() const {return assigner(rg_);}
     void pop_front() {rg_.pop_front();}
 };
+
+template<typename T>
+class equal_proxy 
+{
+private:
+    T t_;
+public:
+    bool operator==(const equal_proxy& x) const { return t_ == x.t_; }
+    bool operator!=(const equal_proxy& x) const { return t_ != x.t_; }
+};
+
+template<typename T>
+equal_proxy<T> make_equal_proxy(T t) { return equal_proxy<T>(t); }
 
 template <class Rg>
 class input_range
@@ -45,8 +76,10 @@ public:
     typedef typename std::range_traits<Rg>::value_type                value_type;
     typedef typename std::range_traits<Rg>::length_type               length_type;
     typedef typename std::range_traits<Rg>::reference                 reference;
-    typedef input_range<typename std::range_traits<Rg>::before_type>  before_type;
-    typedef input_range<typename std::range_traits<Rg>::after_type>   after_type;
+    typedef input_range<typename std::range_traits<Rg>::begin_begin_type>  begin_begin_type;
+    typedef input_range<typename std::range_traits<Rg>::end_end_type>   end_end_type;
+    typedef equal_proxy<typename std::range_traits<Rg>::begin_type>   begin_type;
+    typedef equal_proxy<typename std::range_traits<Rg>::end_type>     end_type;
 
     Rg base() const {return rg_;}
 
@@ -59,12 +92,13 @@ public:
     void pop_front() {rg_.pop_front();}
     bool empty() const {return rg_.empty();}
 
+    begin_type begin() const {return make_equal_proxy(rg_.begin()); }
+    end_type   end()   const {return make_equal_proxy(rg_.end());}
+
     friend bool operator==(const input_range& x, const input_range& y)
         {return x.rg_ == y.rg_;}
     friend bool operator!=(const input_range& x, const input_range& y)
         {return !(x.rg_ == y.rg_);}
-    friend bool front_equal(const input_range& x, const input_range& y) {return x.rg_.front_equal(y.rg_);}
-    friend bool back_equal(const input_range& x, const input_range& y) {return x.rg_.back_equal(y.rg_);}
 };
 
 template <class Rg>
@@ -79,8 +113,10 @@ public:
     typedef typename std::range_traits<Rg>::value_type                  value_type;
     typedef typename std::range_traits<Rg>::length_type                 length_type;
     typedef typename std::range_traits<Rg>::reference                   reference;
-    typedef forward_range<typename std::range_traits<Rg>::before_type>  before_type;
-    typedef forward_range<typename std::range_traits<Rg>::after_type>   after_type;
+    typedef forward_range<typename std::range_traits<Rg>::begin_begin_type>  begin_begin_type;
+    typedef forward_range<typename std::range_traits<Rg>::end_end_type>   end_end_type;
+    typedef equal_proxy<typename std::range_traits<Rg>::begin_type>     begin_type;
+    typedef equal_proxy<typename std::range_traits<Rg>::end_type>       end_type;
 
     Rg base() const {return rg_;}
 
@@ -92,17 +128,19 @@ public:
     reference front() const {return rg_.front();}
     void pop_front() {rg_.pop_front();}
     bool empty() const {return rg_.empty();}
-    before_type before(const forward_range& r) const {return before_type(rg_.before(r.base()));}
-    forward_range before_including(const forward_range& r) const {return forward_range(rg_.before_including(r.base()));}
-    after_type after(const forward_range& r) const {return after_type(rg_.after(r.base()));}
-    forward_range after_including(const forward_range& r) const {return forward_range(rg_.after_including(r.base()));}
+
+    begin_begin_type begin_begin(const forward_range& r) const {return begin_begin_type(rg_.begin_begin(r.base()));}
+    forward_range begin_end(const forward_range& r) const {return forward_range(rg_.begin_end(r.base()));}
+    forward_range end_begin(const forward_range& r) const {return forward_range(rg_.end_begin(r.base()));}
+    end_end_type end_end(const forward_range& r) const {return end_end_type(rg_.end_end(r.base()));}
+
+    begin_type begin() const {return make_equal_proxy(rg_.begin()); }
+    end_type   end()   const {return make_equal_proxy(rg_.end());}
 
     friend bool operator==(const forward_range& x, const forward_range& y)
         {return x.rg_ == y.rg_;}
     friend bool operator!=(const forward_range& x, const forward_range& y)
-        {return !(x == y);}
-    friend bool front_equal(const forward_range& x, const forward_range& y) {return x.rg_.front_equal(y.rg_);}
-    friend bool back_equal(const forward_range& x, const forward_range& y) {return x.rg_.back_equal(y.rg_);}
+        {return !(x.rg_ == y.rg_);}
 };
 
 template <class Rg>
@@ -117,8 +155,10 @@ public:
     typedef typename std::range_traits<Rg>::value_type                        value_type;
     typedef typename std::range_traits<Rg>::length_type                       length_type;
     typedef typename std::range_traits<Rg>::reference                         reference;
-    typedef bidirectional_range<typename std::range_traits<Rg>::before_type>  before_type;
-    typedef bidirectional_range<typename std::range_traits<Rg>::after_type>   after_type;
+    typedef bidirectional_range<typename std::range_traits<Rg>::begin_begin_type>  begin_begin_type;
+    typedef bidirectional_range<typename std::range_traits<Rg>::end_end_type>   end_end_type;
+    typedef equal_proxy<typename std::range_traits<Rg>::begin_type>           begin_type;
+    typedef equal_proxy<typename std::range_traits<Rg>::end_type>             end_type;
 
     Rg base() const {return rg_;}
 
@@ -132,17 +172,33 @@ public:
     reference back() const {return rg_.back();}
     void pop_back() {rg_.pop_back();}
     bool empty() const {return rg_.empty();}
-    before_type before(const bidirectional_range& r) const {return before_type(rg_.before(r.base()));}
-    bidirectional_range before_including(const bidirectional_range& r) const {return bidirectional_range(rg_.before_including(r.base()));}
-    after_type after(const bidirectional_range& r) const {return after_type(rg_.after(r.base()));}
-    bidirectional_range after_including(const bidirectional_range& r) const {return bidirectional_range(rg_.after_including(r.base()));}
+
+    begin_begin_type begin_begin(const bidirectional_range& r) const {return begin_begin_type(rg_.begin_begin(r.base()));}
+    bidirectional_range begin_end(const bidirectional_range& r) const {return bidirectional_range(rg_.begin_end(r.base()));}
+    bidirectional_range end_begin(const bidirectional_range& r) const {return bidirectional_range(rg_.end_begin(r.base()));}
+    end_end_type end_end(const bidirectional_range& r) const {return end_end_type(rg_.end_end(r.base()));}
+
+    begin_type begin() const {return make_equal_proxy(rg_.begin()); }
+    end_type   end()   const {return make_equal_proxy(rg_.end());}
 
     friend bool operator==(const bidirectional_range& x, const bidirectional_range& y)
         {return x.rg_ == y.rg_;}
     friend bool operator!=(const bidirectional_range& x, const bidirectional_range& y)
-        {return !(x == y);}
-    friend bool front_equal(const bidirectional_range& x, const bidirectional_range& y) {return x.rg_.front_equal(y.rg_);}
-    friend bool back_equal(const bidirectional_range& x, const bidirectional_range& y) {return x.rg_.back_equal(y.rg_);}
+        {return x.rg_ != y.rg_;}
+};
+
+template<typename T>
+class order_proxy 
+{
+private:
+    T t_;
+public:
+    bool operator==(const order_proxy& x) const { return t_ == x.t_; }
+    bool operator!=(const order_proxy& x) const { return t_ != x.t_; }
+    bool operator>(const order_proxy& x) const { return t_ > x.t_; }
+    bool operator<(const order_proxy& x) const { return t_ < x.t_; }
+    bool operator>=(const order_proxy& x) const { return t_ >= x.t_; }
+    bool operator<=(const order_proxy& x) const { return t_ <= x.t_; }
 };
 
 template <class Rg>
@@ -157,8 +213,10 @@ public:
     typedef typename std::range_traits<Rg>::value_type                        value_type;
     typedef typename std::range_traits<Rg>::length_type                       length_type;
     typedef typename std::range_traits<Rg>::reference                         reference;
-    typedef random_access_range<typename std::range_traits<Rg>::before_type>  before_type;
-    typedef random_access_range<typename std::range_traits<Rg>::after_type>   after_type;
+    typedef random_access_range<typename std::range_traits<Rg>::begin_begin_type>  begin_begin_type;
+    typedef random_access_range<typename std::range_traits<Rg>::end_end_type>   end_end_type;
+    typedef order_proxy<typename std::range_traits<Rg>::begin_type>           begin_type;
+    typedef order_proxy<typename std::range_traits<Rg>::end_type>             end_type;
 
     Rg base() const {return rg_;}
 
@@ -173,10 +231,6 @@ public:
     void pop_back() {rg_.pop_back();}
     bool empty() const {return rg_.empty();}
     length_type length() const {return rg_.length();}
-    before_type before(const random_access_range& r) const {return before_type(rg_.before(r.base()));}
-    random_access_range before_including(const random_access_range& r) const {return random_access_range(rg_.before_including(r.base()));}
-    after_type after(const random_access_range& r) const {return random_access_range(rg_.after(r.base()));}
-    random_access_range after_including(const random_access_range& r) const {return random_access_range(rg_.after_including(r.base()));}
     random_access_range operator+(length_type n) const 
         {random_access_range tmp(*this); tmp+= n; return tmp;}
     random_access_range& operator+=(length_type n) {rg_ += n; return *this;}
@@ -185,14 +239,18 @@ public:
     random_access_range& operator-=(length_type n) {rg_ += n; return *this;}
     reference operator[](length_type n) const {return rg_[n];}
 
+    begin_begin_type begin_begin(const random_access_range& r) const {return begin_begin_type(rg_.begin_begin(r.base()));}
+    random_access_range begin_end(const random_access_range& r) const {return random_access_range(rg_.begin_end(r.base()));}
+    random_access_range end_begin(const random_access_range& r) const {return random_access_range(rg_.end_begin(r.base()));}
+    end_end_type end_end(const random_access_range& r) const {return end_end_type(rg_.end_end(r.base()));}
+
+    begin_type begin() const {return make_order_proxy(rg_.begin()); }
+    end_type   end()   const {return make_order_proxy(rg_.end());}
+
     friend bool operator==(const random_access_range& x, const random_access_range& y)
         {return x.rg_ == y.rg_;}
     friend bool operator!=(const random_access_range& x, const random_access_range& y)
         {return !(x == y);}
-    friend bool front_before(const random_access_range& x, const random_access_range& y) {return x.rg_.front_before(y.rg_);}
-    friend bool back_before(const random_access_range& x, const random_access_range& y) {return x.rg_.back_before(y.rg_);}
-    friend bool front_after(const random_access_range& x, const random_access_range& y) {return x.rg_.front_after(y.rg_);}
-    friend bool back_after(const random_access_range& x, const random_access_range& y) {return x.rg_.back_after(y.rg_);}
 };
 
 template <class Range>
