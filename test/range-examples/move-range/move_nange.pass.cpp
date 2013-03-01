@@ -8,8 +8,10 @@
 
 /*
 
-    requires r and p are subranges of some range c.
-    moves the range r to the beginning of p without any additional alterations of element order in c 
+    requires r and p are subranges of some range c and that either the beginning or the end of p is the same as the beginning of r.
+    if p is within r returns r
+    if the beginning of p is the same as the beginnig of r, move r to the end of p
+    if the end of p is the same as the beginning of r, move r to the beginning of range representing a concatenation of p and r.
     returns the range to which r was moved
 
 */
@@ -17,7 +19,7 @@
 template<typename R>  // R is a random access range
 R move_range_to(R r, R p) {
   if(r.begin() > p.begin()) return rotate(p.begin_end(r), r);
-  else if (r.end() < p.begin()) return rotate(r.begin_begin(p), r.end_begin(p));
+  else if (r.end() < p.end()) return rotate(r.begin_end(p), r.end_end(p));
   
   return r;
 }
@@ -26,7 +28,7 @@ int main() {
   int ia[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   const unsigned sa = sizeof(ia)/sizeof(ia[0]);
 
-  std::iter_range<int*> r = move_range_to(std::make_iter_range(ia, ia+2), std::make_iter_range(ia+sa, ia+sa));
+  std::iter_range<int*> r = move_range_to(std::make_iter_range(ia, ia+2), std::make_iter_range(ia, ia+sa));
   assert(r.begin() == ia + 8);
   assert(ia[0] == 2);
   assert(ia[1] == 3);
@@ -39,7 +41,7 @@ int main() {
   assert(ia[8] == 0);
   assert(ia[9] == 1);
 
-  r = move_range_to(std::make_iter_range(ia+5, ia+7), std::make_iter_range(ia+6, ia+sa));
+  r = move_range_to(std::make_iter_range(ia+5, ia+7), std::make_iter_range(ia+5, ia+6));
   assert(r.begin() == ia + 5);
   assert(ia[0] == 2);
   assert(ia[1] == 3);
@@ -52,7 +54,7 @@ int main() {
   assert(ia[8] == 0);
   assert(ia[9] == 1);
 
-  r = move_range_to(std::make_iter_range(ia+2, ia+2), std::make_iter_range(ia+6, ia+sa));
+  r = move_range_to(std::make_iter_range(ia+2, ia+2), std::make_iter_range(ia+2, ia+6));
   assert(r.begin() == ia + 6);
   assert(ia[0] == 2);
   assert(ia[1] == 3);
@@ -65,7 +67,7 @@ int main() {
   assert(ia[8] == 0);
   assert(ia[9] == 1);
 
-  r = move_range_to(std::make_iter_range(ia+5, ia+7), std::make_iter_range(ia+2, ia+3));
+  r = move_range_to(std::make_iter_range(ia+5, ia+7), std::make_iter_range(ia+2, ia+5));
   assert(r.begin() == ia + 4);
   assert(ia[0] == 2);
   assert(ia[1] == 3);
